@@ -7,7 +7,9 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
+import com.unbelievable.handlers.JettyLauncher;
 import com.unbelievable.munin.MuninNode;
+import com.unbelievable.munin.MuninPlugin;
 import com.unbelievable.workers.PluginUpdater;
 import java.io.FileInputStream;
 import java.sql.Connection;
@@ -23,7 +25,14 @@ import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-
+import static com.unbelievable.utils.Database.*;
+import static com.unbelievable.utils.Quartz.*;
+import com.unbelievable.workers.MongoWorker;
+import java.util.Collections;
+import java.util.concurrent.CopyOnWriteArrayList;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerFactory;
+import org.quartz.impl.StdSchedulerFactory;
 /**
  *
  * @author enricokern
@@ -38,7 +47,8 @@ public class muninmxcd {
     public static DBCollection col;
     public static String version    = "0.1 <Codename: Frog in Blender>";
     public static Connection conn = null;    
-    public static ArrayList<MuninNode> v_munin_nodes;
+    public static CopyOnWriteArrayList<MuninNode> v_munin_nodes;
+    public static Scheduler sched;
     
     /**
      * @param args the command line arguments
@@ -98,7 +108,12 @@ public class muninmxcd {
             else
             {
                 logger.setLevel( Level.OFF);
-            }          
+            }    
+            
+            if(p.getProperty("log.more") != null)
+            {
+                logMore = true;
+            }
             
         } catch (Exception ex)
         {
@@ -124,7 +139,7 @@ public class muninmxcd {
             
             // PreFilling Nodes, max 100 in concurrent
             logger.info("Loading initial MuninNode details. This can take a few minutes...");
-            v_munin_nodes = new ArrayList<>();
+            v_munin_nodes = new CopyOnWriteArrayList<>();
             java.sql.Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * FROM nodes");
             while(rs.next())
@@ -135,19 +150,69 @@ public class muninmxcd {
                 mn.setNode_id(rs.getInt("id"));
                 mn.setPort(rs.getInt("port"));
                 mn.setUser_id(rs.getInt("user_id"));
+                mn.setQueryInterval(rs.getInt("query_interval"));
                 v_munin_nodes.add(mn);              
                 logger.info("* " + mn.getHostname() + " queued for pluginfetch");
             }
 
-            ExecutorService executor = Executors.newFixedThreadPool(100);
+            ExecutorService executor = Executors.newFixedThreadPool(250);
+            
             for (MuninNode it_mn : v_munin_nodes) {  
                     executor.execute(new PluginUpdater(it_mn));
             }   
-            executor.shutdown();
+            logger.info("Shuting down Updater Executor");
+            executor.shutdownNow();
+            
             while (!executor.isTerminated()) {
                 Thread.sleep(100);
             }
             
+            // update database plugins per node
+            // TODO: this needs to be done concurrent. this takes quite some time for a large number of nodes, or do on contact?
+            logger.info("Updating Plugins for MuninNodes in Database");
+            for (MuninNode it_mn : v_munin_nodes) {
+                if(it_mn.getPluginList().size() > 0)
+                {
+                   for(MuninPlugin it_pl : it_mn.getPluginList()) {
+                       //logger.info(it_pl.getPluginName());
+                       dbUpdatePluginForNode(it_mn.getNode_id(),it_pl);
+                   }
+                   // delete now missing plugins
+                   dbDeleteMissingPlugins(it_mn.getNode_id(),it_mn.getPluginList());
+                }
+            }               
+            
+            // launching quartz scheduler
+            logger.info("Launching Scheduler");
+            SchedulerFactory sf = new StdSchedulerFactory("quartz.properties");
+            sched = sf.getScheduler();   
+            sched.start();   
+            
+            // scheduling jobs
+            int i = 0;
+            for (MuninNode it_mn : v_munin_nodes) {
+                if(i == 200)
+                {
+                    Thread.sleep(10000);
+                    i = 0;
+                    logger.info("Waiting 10s for new scheduling slot");
+                }
+                scheduleJob(it_mn);
+                i++;
+            }
+            
+            // starting MongoExecutor
+            new Thread(new MongoWorker()).start();
+            
+            // starting API server
+            new Thread(new JettyLauncher()).start();
+            
+            
+            while(true)
+            {
+                Thread.sleep(5000);
+                System.out.println("Mongo Queue Size: " + mongo_queue.size());
+            }
         } catch (Exception ex)
         {
             System.err.println("Something went wrong as fuck: " + ex.getLocalizedMessage());

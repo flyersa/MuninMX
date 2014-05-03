@@ -190,7 +190,7 @@ public class MuninPlugin {
         } catch (Exception ex)
         {
             //try { csMuninSocket.close(); } catch (Exception e) {};
-            logger.error(p_strHostname + "Unable to connect/process: " + ex.getMessage());
+            logger.error(p_strHostname + " Unable to connect/process: " + ex.getMessage());
             ex.printStackTrace();
         }
         
@@ -202,7 +202,7 @@ public class MuninPlugin {
     }
 
     void setPluginCategory(String p_strCategory) {
-        str_PluginCategory = p_strCategory;
+        setStr_PluginCategory(p_strCategory);
     }
 
     /**
@@ -217,5 +217,19 @@ public class MuninPlugin {
      */
     public void setPluginLabel(String str_PluginLabel) {
         this.str_PluginLabel = str_PluginLabel;
+    }
+
+    /**
+     * @return the str_PluginCategory
+     */
+    public String getStr_PluginCategory() {
+        return str_PluginCategory;
+    }
+
+    /**
+     * @param str_PluginCategory the str_PluginCategory to set
+     */
+    public void setStr_PluginCategory(String str_PluginCategory) {
+        this.str_PluginCategory = str_PluginCategory;
     }
 }

@@ -10,6 +10,7 @@ import com.unbelievable.munin.MuninNode;
 
 
 
+
 /**
  *
  * @author enricokern
@@ -27,7 +28,7 @@ public class PluginUpdater implements Runnable {
         if(!p_mn_node.loadPlugins())
         {
             com.unbelievable.muninmxcd.v_munin_nodes.remove(p_mn_node);
-            com.unbelievable.muninmxcd.logger.warn("** Removed " + p_mn_node.getHostname() + " from nodelist because unable to fetch plugins, retrying later");
+            com.unbelievable.muninmxcd.logger.warn("** Removed " + p_mn_node.getHostname() + " from nodelist because unable to fetch plugins, retrying later");      
         }
         else
         {

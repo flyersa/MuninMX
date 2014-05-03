@@ -24,7 +24,7 @@ import static com.unbelievable.utils.Generic.isPluginIgnored;
  * @author enricokern
  * 
  */
-public class MuninNode implements Runnable
+public class MuninNode 
 {
   private String    str_nodename;
   private String    str_hostname    = "unset";  
@@ -36,9 +36,21 @@ public class MuninNode implements Runnable
   private transient ArrayList<MuninPlugin> v_loaded_plugins;
   private int       i_GraphCount    = 0;
   private int       i_lastRun        = 0;
-  private int       node_id          = 0;
-  private int       user_id          = 0;
-
+  private Integer   node_id          = 0;
+  private Integer   user_id          = 0;
+  private int       queryInterval    = 0;
+  
+  
+  
+    public void setQueryInterval(Integer p_int)
+    {
+        queryInterval = p_int;
+    }
+    
+    public int getQueryInterval()
+    {
+        return queryInterval;
+    }
   
     public int getGraphCount()
     {
@@ -301,28 +313,17 @@ public class MuninNode implements Runnable
         return true;
     }
             
-    @Override
+
     public void run() {
         b_isRunning = true;
-        if(logMore)
-        {
-            logger.info(getHostname() + " Monitoring thread started");
-        }
+
+        logger.info(getHostname() + " Monitoring job started");
         
-        int l_iSleep   = Integer.parseInt(p.getProperty("query.sleep"));
+        
         int iCurTime = getUnixtime();
  
         try {
             
-            // update last run
-            
-            int iHasToRun = i_lastRun + l_iSleep;
-            
-            if(iHasToRun > getUnixtime())
-            {
-                logger.debug(this.getHostname() + " not executing. iHasToRun ("+iHasToRun+") is higher then current time: " + iCurTime );
-                return;
-            }
             
             Socket clientSocket = new Socket();
             clientSocket.connect(new InetSocketAddress(this.getHostname(), this.getPort()),10000);
@@ -344,11 +345,10 @@ public class MuninNode implements Runnable
            //ex.printStackTrace();
         }
         
-        if(logMore)
-        {
-            int iRunTime = getUnixtime() - iCurTime;
-            logger.info(getHostname() + " Monitoring thread stopped - runtime: " + iRunTime);
-        }
+
+           int iRunTime = getUnixtime() - iCurTime;
+           logger.info(getHostname() + " Monitoring job stopped - runtime: " + iRunTime);
+        
     }
 
     
@@ -443,28 +443,28 @@ public class MuninNode implements Runnable
     /**
      * @return the node_id
      */
-    public int getNode_id() {
+    public Integer getNode_id() {
         return node_id;
     }
 
     /**
      * @param node_id the node_id to set
      */
-    public void setNode_id(int node_id) {
+    public void setNode_id(Integer node_id) {
         this.node_id = node_id;
     }
 
     /**
      * @return the user_id
      */
-    public int getUser_id() {
+    public Integer getUser_id() {
         return user_id;
     }
 
     /**
      * @param user_id the user_id to set
      */
-    public void setUser_id(int user_id) {
+    public void setUser_id(Integer user_id) {
         this.user_id = user_id;
     }
 }
