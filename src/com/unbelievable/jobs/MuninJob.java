@@ -25,7 +25,7 @@ public class MuninJob implements Job {
           }
           else
           {
-              logger.error("Tried to Run job for NodeID: " + nodeId + " but this node is not in nodelist :(");
+              logger.error("Tried to Run job for NodeID: " + nodeId + " but this node is not in nodelist :("); 
           }
     }
     

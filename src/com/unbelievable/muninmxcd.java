@@ -7,6 +7,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
+import com.unbelievable.executors.MongoExecutor;
 import com.unbelievable.handlers.JettyLauncher;
 import com.unbelievable.munin.MuninNode;
 import com.unbelievable.munin.MuninPlugin;
@@ -126,9 +127,10 @@ public class muninmxcd {
             // connect to db
             logger.info("Connecting to TokuMX");
             MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
-            builder.connectionsPerHost(100);
+            builder.connectionsPerHost(400);
             builder.autoConnectRetry(true);
             builder.threadsAllowedToBlockForConnectionMultiplier(10);
+           
             // speed up inserts, we dont care if we miss some if the shit hits the fan
             builder.writeConcern(WriteConcern.NONE);
             m = new MongoClient( new ServerAddress(p.getProperty("mongo.host")),  builder.build());
@@ -154,7 +156,8 @@ public class muninmxcd {
                 v_munin_nodes.add(mn);              
                 logger.info("* " + mn.getHostname() + " queued for pluginfetch");
             }
-
+            
+            /*
             ExecutorService executor = Executors.newFixedThreadPool(250);
             
             for (MuninNode it_mn : v_munin_nodes) {  
@@ -163,24 +166,10 @@ public class muninmxcd {
             logger.info("Shuting down Updater Executor");
             executor.shutdownNow();
             
-            while (!executor.isTerminated()) {
+            while (!executor.isShutdown()) {
                 Thread.sleep(100);
             }
-            
-            // update database plugins per node
-            // TODO: this needs to be done concurrent. this takes quite some time for a large number of nodes, or do on contact?
-            logger.info("Updating Plugins for MuninNodes in Database");
-            for (MuninNode it_mn : v_munin_nodes) {
-                if(it_mn.getPluginList().size() > 0)
-                {
-                   for(MuninPlugin it_pl : it_mn.getPluginList()) {
-                       //logger.info(it_pl.getPluginName());
-                       dbUpdatePluginForNode(it_mn.getNode_id(),it_pl);
-                   }
-                   // delete now missing plugins
-                   dbDeleteMissingPlugins(it_mn.getNode_id(),it_mn.getPluginList());
-                }
-            }               
+             */      
             
             // launching quartz scheduler
             logger.info("Launching Scheduler");
@@ -191,18 +180,18 @@ public class muninmxcd {
             // scheduling jobs
             int i = 0;
             for (MuninNode it_mn : v_munin_nodes) {
-                if(i == 200)
+                if(i == 250)
                 {
-                    Thread.sleep(10000);
+                    Thread.sleep(20000);
                     i = 0;
-                    logger.info("Waiting 10s for new scheduling slot");
+                    logger.info("Waiting 20s for new scheduling slot");
                 }
                 scheduleJob(it_mn);
                 i++;
             }
             
             // starting MongoExecutor
-            new Thread(new MongoWorker()).start();
+            new Thread(new MongoExecutor()).start();
             
             // starting API server
             new Thread(new JettyLauncher()).start();

@@ -25,6 +25,7 @@ public class PluginUpdater implements Runnable {
 
     @Override
     public void run() {
+        com.unbelievable.muninmxcd.logger.info("* " + p_mn_node.getHostname()+ " Loading Plugins");
         if(!p_mn_node.loadPlugins())
         {
             com.unbelievable.muninmxcd.v_munin_nodes.remove(p_mn_node);

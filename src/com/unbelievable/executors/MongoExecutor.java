@@ -19,14 +19,14 @@ public class MongoExecutor implements Runnable {
         {
             while(true)
             {
-                Thread.sleep(500);
+                Thread.sleep(50);
                 ExecutorService executor = Executors.newFixedThreadPool(Integer.parseInt(p.getProperty("mongo.threads")));
                 
                 executor.execute(new MongoWorker());
 
                 executor.shutdown();
                 while (!executor.isTerminated()) {
-                    Thread.sleep(100);
+                    Thread.sleep(50);
                 }
                 logger.info("MongoWorker Set finished. Restarting MongoWorkers.");
                 System.gc();

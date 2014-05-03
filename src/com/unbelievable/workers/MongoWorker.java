@@ -24,7 +24,7 @@ public class MongoWorker implements Runnable {
     public void run() {
 
         db = m.getDB("muninmx");
-        
+        logger.info("Started MongoWorker");
         while(true)
         { 
             try
@@ -48,7 +48,7 @@ public class MongoWorker implements Runnable {
                 }
                 else
                 {
-                    Thread.sleep(100);    
+                    Thread.sleep(50);    
                 }
                 
             } catch (Exception ex)

@@ -2,8 +2,11 @@ package com.unbelievable.utils;
 
 import com.unbelievable.munin.MuninNode;
 import java.util.Iterator;
-import static com.unbelievable.muninmxcd.v_munin_nodes;
+
 import static com.unbelievable.muninmxcd.p;
+import static com.unbelievable.muninmxcd.v_munin_nodes;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 /**
  *
@@ -22,7 +25,7 @@ public class Generic {
      */
     public static MuninNode getMuninNode(String p_strNodename)
     {
-        for (MuninNode l_mn : v_munin_nodes) {
+        for (MuninNode l_mn : com.unbelievable.muninmxcd.v_munin_nodes) {
             if(l_mn.getNodename().equals(p_strNodename) || l_mn.getHostname().equals(p_strNodename))
             {
                 return l_mn;
@@ -38,12 +41,16 @@ public class Generic {
      */
     public static MuninNode getMuninNode(Integer nodeId)
     {
-        for (MuninNode l_mn : v_munin_nodes) {
-            if(l_mn.getNode_id() == nodeId)
-            {
+        Iterator it = v_munin_nodes.iterator();
+        while (it.hasNext())
+        {
+             MuninNode l_mn = (MuninNode) it.next();
+             if(l_mn.getNode_id().equals(nodeId))
+             {
                 return l_mn;
-            }
+             }
         }
+        com.unbelievable.muninmxcd.logger.warn("getMuninNode: Cant find nodeId " + nodeId);
         return null;
     }  
     

@@ -17,6 +17,8 @@ import static com.unbelievable.muninmxcd.p;
 import static com.unbelievable.muninmxcd.logger;
 import static com.unbelievable.utils.Generic.getUnixtime;
 import static com.unbelievable.muninmxcd.logMore;
+import static com.unbelievable.utils.Database.dbDeleteMissingPlugins;
+import static com.unbelievable.utils.Database.dbUpdatePluginForNode;
 import static com.unbelievable.utils.Generic.isPluginIgnored;
 
 /**
@@ -164,7 +166,7 @@ public class MuninNode
         try 
         {
             Socket cs = new Socket( getHostname(),getPort() );
-            cs.setSoTimeout(10000);
+            cs.setSoTimeout(1000);
             
             PrintStream os = new PrintStream( cs.getOutputStream() );
             BufferedReader in = new BufferedReader(new InputStreamReader( cs.getInputStream()) );
@@ -323,7 +325,17 @@ public class MuninNode
         int iCurTime = getUnixtime();
  
         try {
-            
+            // update plugins, maybe we have some new :)
+            this.loadPlugins();
+            logger.info("[Job: " + getHostname() + "] Updating Database");
+            // update graphs in database too
+            for(MuninPlugin it_pl : getPluginList()) {
+                //logger.info(it_pl.getPluginName());
+                dbUpdatePluginForNode(getNode_id(),it_pl);
+             }
+            // delete now missing plugins
+            dbDeleteMissingPlugins(getNode_id(),getPluginList());
+            logger.info("[Job: " + getHostname() + "] Databaseupdate Done");
             
             Socket clientSocket = new Socket();
             clientSocket.connect(new InetSocketAddress(this.getHostname(), this.getPort()),10000);
