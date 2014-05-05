@@ -22,9 +22,10 @@ public class MongoWorker implements Runnable {
     
     @Override
     public void run() {
-
+        
         db = m.getDB("muninmx");
         logger.info("Started MongoWorker");
+        String plugin = "";
         while(true)
         { 
             try
@@ -32,6 +33,7 @@ public class MongoWorker implements Runnable {
                 BasicDBObject doc = mongo_queue.take();
                 if(doc != null)
                 {
+                    plugin = doc.getString("plugin");
                     // each hostname got its own collection
                     col = db.getCollection(doc.getString("user_id") + "_" + doc.getString("nodeid")+"_"+doc.getString("plugin"));
                     doc.removeField("hostname");
@@ -42,7 +44,7 @@ public class MongoWorker implements Runnable {
                     col.insert(doc);
                     if(logMore)
                     {
-                        logger.info("Mongo: Wrote " + doc.getString("plugin") + " / " + doc.getString("graph") + " / " + doc.getString("value"));
+                        logger.info("Mongo: Wrote " + plugin + " / " + doc.getString("graph") + " / " + doc.getString("value"));
                     }
                     //db.requestDone();
                 }

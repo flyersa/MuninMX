@@ -20,7 +20,7 @@ public class MuninGraph {
     // last graph value contains the value from the last query, it is required
     // to give out live numbers for a graph with GraphType COUNTER
     private BigDecimal bd_LastGraphValue = new BigDecimal("0");
-    private transient BigDecimal bd_LastGraphValueCounter = new BigDecimal("0");
+    private BigDecimal bd_LastGraphValueCounter = new BigDecimal("0");
     private  boolean is_init = false;
     private int i_lastGraphFetch    =   0;
     private int i_lastQueued    = 0;
@@ -135,7 +135,7 @@ public class MuninGraph {
         }
  
         
-        this.bd_GraphValue = new BigDecimal(str_GraphValue);
+        bd_GraphValue = new BigDecimal(str_GraphValue);
         
         if(this.getGraphType() != null)
         {

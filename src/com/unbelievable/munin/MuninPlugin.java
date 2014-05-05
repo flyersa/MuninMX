@@ -12,7 +12,7 @@ import java.util.StringTokenizer;
 import static com.unbelievable.muninmxcd.p;
 import static com.unbelievable.muninmxcd.logger;
 import static com.unbelievable.utils.Generic.getUnixtime;
-
+import static com.unbelievable.muninmxcd.logMore;
 /**
  *
  * @author enricokern
@@ -153,7 +153,10 @@ public class MuninPlugin {
                 {
                     String l_graphName = line.substring(0,line.indexOf("."));
                     String l_value      = line.substring(line.indexOf(" ")+1,line.length());
-                    //com.unbelievablemachine.monitoring.MuninToMongo.logger.debug(l_graphName + " - " + l_value);
+                    if(logMore)
+                    {
+                        logger.info(p_strHostname + " - " + l_graphName + " - " + l_value);
+                    }
                     Iterator it = this.v_graphs.iterator();
                     while (it.hasNext())
                     {

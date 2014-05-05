@@ -20,6 +20,7 @@ import static com.unbelievable.muninmxcd.logMore;
 import static com.unbelievable.utils.Database.dbDeleteMissingPlugins;
 import static com.unbelievable.utils.Database.dbUpdatePluginForNode;
 import static com.unbelievable.utils.Generic.isPluginIgnored;
+import com.unbelievable.utils.SocketCheck;
 
 /**
  *
@@ -41,7 +42,8 @@ public class MuninNode
   private Integer   node_id          = 0;
   private Integer   user_id          = 0;
   private int       queryInterval    = 0;
-  
+  private int       last_plugin_load = 0;
+  private boolean   is_init = false;
   
   
     public void setQueryInterval(Integer p_int)
@@ -163,24 +165,38 @@ public class MuninNode
     {
         setLoadedPlugins(new ArrayList<MuninPlugin>());
         String l_lastProceeded = "";
+        
+        
         try 
         {
-            Socket cs = new Socket( getHostname(),getPort() );
-            cs.setSoTimeout(1000);
-            
+            Socket cs = new Socket();
+            cs.setKeepAlive(false);
+            cs.setSoLinger(true, 0);
+            cs.connect(new InetSocketAddress(this.getHostname(), this.getPort()),5000);
+            if(p.getProperty("kill.sockets").equals("true"))
+            {
+                SocketCheck sc = new SocketCheck(cs,getUnixtime());
+                sc.setHostname(this.getHostname());
+                com.unbelievable.muninmxcd.v_sockets.add(sc);
+            }
             PrintStream os = new PrintStream( cs.getOutputStream() );
             BufferedReader in = new BufferedReader(new InputStreamReader( cs.getInputStream()) );
+            
+            
+           
             String s = in.readLine();
             if(s != null)
             {
                 // Set version
                 os.println("version");
+                Thread.sleep(300);
                 s = in.readLine();
                 String version = s.substring(s.indexOf(":")+1,s.length()).trim();
                 this.str_muninVersion = version;
                 
                 // get list of available plugins
                 os.println("list");
+                Thread.sleep(300);
                 s = in.readLine();
       
                 
@@ -275,6 +291,7 @@ public class MuninNode
                               l_mp.setPluginLabel(l_tmp.substring(13,l_tmp.length()));
                           }
                       }
+                      
                     }
                   
                     // add to pluginlist
@@ -291,23 +308,20 @@ public class MuninNode
                     //System.out.println(" - " + l_strGraphTitle);
                 }
                 cs.close();
+                last_plugin_load = getUnixtime();
                 //System.out.println(s);
             }
             else
             {
+                cs.close();
                 logger.warn("Plugins cannot be loaded for this node. Check connectivity or munin-node");
             }
-            Iterator it = getLoadedPlugins().iterator();
-            while (it.hasNext())
-            {
-                MuninPlugin l_mn = (MuninPlugin) it.next();
+            for (MuninPlugin l_mn : getLoadedPlugins()) {
                 i_GraphCount = i_GraphCount + l_mn.getGraphs().size();
                 logger.debug(l_mn.getGraphs().size() + " graphs found for plugin: " + l_mn.getPluginName().toUpperCase() + " on node: " + this.getNodename());
             }
-            //cs.close();
         } catch (Exception ex) {
             logger.error("Error loading plugins on " + str_hostname + " : " + ex.getMessage());
-            logger.error("DEBUG last proceeded: " + l_lastProceeded);
             ex.printStackTrace();
             return false;
         } 
@@ -323,23 +337,49 @@ public class MuninNode
         
         
         int iCurTime = getUnixtime();
- 
+        int iPluginRefreshTime = last_plugin_load + 86400;
         try {
             // update plugins, maybe we have some new :)
-            this.loadPlugins();
-            logger.info("[Job: " + getHostname() + "] Updating Database");
-            // update graphs in database too
-            for(MuninPlugin it_pl : getPluginList()) {
-                //logger.info(it_pl.getPluginName());
-                dbUpdatePluginForNode(getNode_id(),it_pl);
-             }
-            // delete now missing plugins
-            dbDeleteMissingPlugins(getNode_id(),getPluginList());
-            logger.info("[Job: " + getHostname() + "] Databaseupdate Done");
+            // double try to load plugins if fail
+       
+            if(getPluginList().size() > 1)
+            {
+                if(!is_init)
+                {
+                    logger.info("[Job: " + getHostname() + "] Updating Database");
+                    // update graphs in database too
+                    for(MuninPlugin it_pl : getPluginList()) {
+                        //logger.info(it_pl.getPluginName());
+                        dbUpdatePluginForNode(getNode_id(),it_pl);
+                     }
+                    // delete now missing plugins
+                    dbDeleteMissingPlugins(getNode_id(),getPluginList());
+                    logger.info("[Job: " + getHostname() + "] Databaseupdate Done");
+                    is_init = true;
+                }
+                else
+                {
+                    if(iCurTime > last_plugin_load )
+                    {
+                        logger.info("Refreshing Plugins on " + this.getHostname());
+                        this.loadPlugins();
+                    }
+                }
+            }
+            else
+            {
+                this.loadPlugins();
+            }
+                  
             
             Socket clientSocket = new Socket();
             clientSocket.connect(new InetSocketAddress(this.getHostname(), this.getPort()),10000);
-            
+            SocketCheck sc = new SocketCheck(clientSocket,getUnixtime());
+            if(p.getProperty("kill.sockets").equals("true"))
+            {  
+                sc.setHostname(this.getHostname());
+                com.unbelievable.muninmxcd.v_sockets.add(sc);
+            }
             this.i_lastRun = getUnixtime();
 
             // update graphs for all plugins
@@ -347,19 +387,27 @@ public class MuninNode
             while(it.hasNext())
             {
                 MuninPlugin l_mp = (MuninPlugin) it.next();
-                logger.debug(getHostname() + " fetching graphs for " + l_mp.getPluginName().toUpperCase());
+                if(logMore)
+                {
+                    logger.info(getHostname() + " fetching graphs for " + l_mp.getPluginName().toUpperCase());
+                }
                 l_mp.updateAllGraps(this.getHostname(), this.getPort(), clientSocket);
                 // add all graphs to insertion queue for mongodb
                 queuePluginFetch(l_mp.returnAllGraphs(), l_mp.getPluginName());
             }
+            clientSocket.close();
+            
+            if(p.getProperty("kill.sockets").equals("true"))
+            {
+                com.unbelievable.muninmxcd.v_sockets.remove(sc);
+            }
+            sc = null;
         } catch (Exception ex) {
-           //com.unbelievablemachine.monitoring.MuninToMongo.logger.fatal("Error in thread for host: " + getHostname() + " : " + ex.getLocalizedMessage());
-           //ex.printStackTrace();
+           logger.fatal("Error in thread for host: " + getHostname() + " : " + ex.getLocalizedMessage());
+           ex.printStackTrace();
         }
-        
-
-           int iRunTime = getUnixtime() - iCurTime;
-           logger.info(getHostname() + " Monitoring job stopped - runtime: " + iRunTime);
+        int iRunTime = getUnixtime() - iCurTime;
+        logger.info(getHostname() + " Monitoring job stopped - runtime: " + iRunTime);
         
     }
 

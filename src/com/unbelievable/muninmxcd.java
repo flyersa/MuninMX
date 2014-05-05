@@ -28,12 +28,14 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import static com.unbelievable.utils.Database.*;
 import static com.unbelievable.utils.Quartz.*;
+import com.unbelievable.utils.SocketCheck;
 import com.unbelievable.workers.MongoWorker;
 import java.util.Collections;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerFactory;
 import org.quartz.impl.StdSchedulerFactory;
+import static com.unbelievable.utils.Generic.getUnixtime;
 /**
  *
  * @author enricokern
@@ -50,6 +52,7 @@ public class muninmxcd {
     public static Connection conn = null;    
     public static CopyOnWriteArrayList<MuninNode> v_munin_nodes;
     public static Scheduler sched;
+    public static CopyOnWriteArrayList<SocketCheck> v_sockets;
     
     /**
      * @param args the command line arguments
@@ -113,7 +116,10 @@ public class muninmxcd {
             
             if(p.getProperty("log.more") != null)
             {
-                logMore = true;
+                if(p.getProperty("log.more").equals("true"))
+                {
+                    logMore = true;
+                }
             }
             
         } catch (Exception ex)
@@ -142,6 +148,7 @@ public class muninmxcd {
             // PreFilling Nodes, max 100 in concurrent
             logger.info("Loading initial MuninNode details. This can take a few minutes...");
             v_munin_nodes = new CopyOnWriteArrayList<>();
+            v_sockets = new CopyOnWriteArrayList<>();
             java.sql.Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * FROM nodes");
             while(rs.next())
@@ -164,18 +171,24 @@ public class muninmxcd {
                     executor.execute(new PluginUpdater(it_mn));
             }   
             logger.info("Shuting down Updater Executor");
-            executor.shutdownNow();
+            executor.shutdown();
             
-            while (!executor.isShutdown()) {
+            while (!executor.isTerminated()) {
                 Thread.sleep(100);
             }
-             */      
-            
+            logger.info("Debug Mode. Exiting");
+            System.exit(0);      
+            /*
+             * 
+             */
             // launching quartz scheduler
             logger.info("Launching Scheduler");
             SchedulerFactory sf = new StdSchedulerFactory("quartz.properties");
             sched = sf.getScheduler();   
             sched.start();   
+            
+                        // starting API server
+            new Thread(new JettyLauncher()).start();
             
             // scheduling jobs
             int i = 0;
@@ -193,14 +206,39 @@ public class muninmxcd {
             // starting MongoExecutor
             new Thread(new MongoExecutor()).start();
             
-            // starting API server
-            new Thread(new JettyLauncher()).start();
+
             
-            
+            int curTime;
+            int toTime;
             while(true)
             {
                 Thread.sleep(5000);
                 System.out.println("Mongo Queue Size: " + mongo_queue.size());
+                
+                if(p.getProperty("kill.sockets").equals("true"))
+                {
+                    System.out.println("Sockets: " + v_sockets.size());
+                    // check for sockets that we can kill
+                    curTime = getUnixtime();
+                    for(SocketCheck sc : v_sockets)
+                    {   
+                        toTime = curTime - 120;
+                        if(sc.getSocketCreated() < toTime)
+                        {
+                            if(!sc.getSocket().isClosed())
+                            {
+                                logger.info("timing out socket... from: " + sc.getHostname());
+                                sc.closeSocket();
+                                v_sockets.remove(sc);
+                            }
+                            else
+                            {
+                                v_sockets.remove(sc);
+                            }
+                        }
+                    }
+                }
+                
             }
         } catch (Exception ex)
         {

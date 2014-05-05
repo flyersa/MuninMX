@@ -18,15 +18,36 @@ public class MuninJob implements Job {
     public void execute(JobExecutionContext jec) throws JobExecutionException {
           JobDataMap dataMap = jec.getJobDetail().getJobDataMap();
           Integer nodeId = dataMap.getInt("nodeId");
-          MuninNode mn = getMuninNode(nodeId);
-          if(mn != null)
+          
+          Thread runner = new Thread(new JobRunner(nodeId));
+          int maxAge = getUnixtime() + 60;
+          
+          runner.start();
+          try
           {
-              mn.run();
-          }
-          else
+          while(true)
           {
-              logger.error("Tried to Run job for NodeID: " + nodeId + " but this node is not in nodelist :("); 
+              Thread.sleep(1000);
+              if(runner.isAlive())
+              {
+                  if(getUnixtime() > maxAge)
+                  {
+                    logger.warn("interrupting JobRunner for node: " + nodeId);
+                    runner.interrupt();
+                    
+                    return;
+                  }
+              }
+              else
+              {
+                  return;
+              }
           }
+          } catch (Exception ex)
+          {
+              logger.error("Error in MuninJob: " + ex.getLocalizedMessage());
+          }
+    
     }
     
 }

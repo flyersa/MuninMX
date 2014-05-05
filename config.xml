@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Configuration File for MuninMX Collector Daemon</comment>
+<!-- The Location of the Logfile -->
+<entry key="log.file">/tmp/mxd.log</entry>
+<!-- Log Level (ALL | DEBUG | INFO | WARN | ERROR | FATAL | OFF -->
+<entry key="log.level">INFO</entry>
+<!--<entry key="log.more">true</entry> -->
+<!-- log access from ips to jetty? -->
+<entry key="log.accessfrom">false</entry>
+<entry key="mongo.host">skoll.unbelievable-machine.net</entry>
+<!-- api server port -->
+<entry key="api.port">49000</entry>
+<!-- tokumx workers -->
+<entry key="mongo.threads">200</entry>
+<!-- workers to inspect the error queue -->
+<entry key="mysql.host">skoll.unbelievable-machine.net</entry>
+<entry key="mysql.port">3306</entry>
+<entry key="mysql.user">muninmx</entry>
+<entry key="mysql.pass">f27LB7TFwBjSjK</entry>
+<entry key="mysql.db">muninmx</entry>
+<entry key="ignore.plugins">IRQSTATS,IOSTAT,BONDING_ERR_BOND0,BONDING_ERR_BOND1</entry>
+</properties>
