@@ -21,6 +21,7 @@ import static com.unbelievable.utils.Database.dbDeleteMissingPlugins;
 import static com.unbelievable.utils.Database.dbUpdatePluginForNode;
 import static com.unbelievable.utils.Generic.isPluginIgnored;
 import com.unbelievable.utils.SocketCheck;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  *
@@ -36,7 +37,7 @@ public class MuninNode
   private boolean   b_isRunning     = false;
   private long      l_lastFrontendQuery;   
   private String    str_muninVersion = "";
-  private transient ArrayList<MuninPlugin> v_loaded_plugins;
+  private transient CopyOnWriteArrayList<MuninPlugin> v_loaded_plugins;
   private int       i_GraphCount    = 0;
   private int       i_lastRun        = 0;
   private Integer   node_id          = 0;
@@ -147,7 +148,7 @@ public class MuninNode
      * 
      * @return list of plugins
      */
-    public ArrayList<MuninPlugin> getPluginList()
+    public CopyOnWriteArrayList<MuninPlugin> getPluginList()
     {
         if(getLoadedPlugins() == null)
         {
@@ -164,7 +165,7 @@ public class MuninNode
      */
     public boolean loadPlugins()
     {
-        setLoadedPlugins(new ArrayList<MuninPlugin>());
+        setLoadedPlugins(new CopyOnWriteArrayList<MuninPlugin>());
         String l_lastProceeded = "";
         
         
@@ -173,7 +174,11 @@ public class MuninNode
             Socket cs = new Socket();
             cs.setKeepAlive(false);
             cs.setSoLinger(true, 0);
-            cs.connect(new InetSocketAddress(this.getHostname(), this.getPort()),5000);
+            cs.setReuseAddress(false);  
+            cs.setSoTimeout(30000);
+            cs.connect(new InetSocketAddress(this.getHostname(), this.getPort()),30000);
+            
+          
             if(p.getProperty("kill.sockets").equals("true"))
             {
                 SocketCheck sc = new SocketCheck(cs,getUnixtime());
@@ -181,25 +186,26 @@ public class MuninNode
                 com.unbelievable.muninmxcd.v_sockets.add(sc);
             }
             PrintStream os = new PrintStream( cs.getOutputStream() );
-            BufferedReader in = new BufferedReader(new InputStreamReader( cs.getInputStream()) );
+            BufferedReader in = new BufferedReader(new InputStreamReader( cs.getInputStream()) );  
             
-            
-           
             String s = in.readLine();
+
             if(s != null)
             {
                 // Set version
                 os.println("version");
-                Thread.sleep(300);
+                Thread.sleep(250);
                 s = in.readLine();
+                
                 String version = s.substring(s.indexOf(":")+1,s.length()).trim();
                 this.str_muninVersion = version;
                 
                 // get list of available plugins
                 os.println("list");
-                Thread.sleep(300);
+
+                Thread.sleep(250);
                 s = in.readLine();
-      
+ 
                 
                 String l_tmp;
                 StringTokenizer l_st = new StringTokenizer(s, " ");
@@ -224,8 +230,12 @@ public class MuninNode
                     int l_iTmp         = 0;
                     MuninGraph  l_mg = new MuninGraph();                    
                     
-                    while (!(l_tmp = in.readLine()).equals(".")) 
+                    while ((l_tmp = in.readLine()) != null) 
                     {
+                      if(l_tmp.startsWith("."))
+                      {
+                        break;
+                      }
                       // collect graphs only for plugin
                       String l_strName;
                       String l_strType;
@@ -309,20 +319,25 @@ public class MuninNode
                     //System.out.println(" - " + l_strGraphTitle);
                 }
                 cs.close();
+                in.close();
+                os.close();
                 last_plugin_load = getUnixtime();
                 //System.out.println(s);
             }
             else
             {
                 cs.close();
-                logger.warn("Error loading plugins on " + str_hostname + ". Check connectivity or munin-node");
+                in.close();
+                os.close();
+                logger.warn("Error loading plugins on " + str_hostname + " ("+this.getNode_id()+"). Check connectivity or munin-node");
             }
+            /*
             for (MuninPlugin l_mn : getLoadedPlugins()) {
                 i_GraphCount = i_GraphCount + l_mn.getGraphs().size();
                 logger.debug(l_mn.getGraphs().size() + " graphs found for plugin: " + l_mn.getPluginName().toUpperCase() + " on node: " + this.getNodename());
-            }
+            }*/
         } catch (Exception ex) {
-            logger.error("Error loading plugins on " + str_hostname + " : " + ex.getMessage());
+            logger.error("Error loading plugins on " + str_hostname + " ("+this.getNode_id()+") : " + ex.getMessage());
             ex.printStackTrace();
             return false;
         } 
@@ -377,7 +392,11 @@ public class MuninNode
                   
             
             Socket clientSocket = new Socket();
-            clientSocket.connect(new InetSocketAddress(this.getHostname(), this.getPort()),10000);
+            clientSocket.setSoTimeout(30000);
+            clientSocket.setKeepAlive(false);
+            clientSocket.setReuseAddress(false);            
+            clientSocket.connect(new InetSocketAddress(this.getHostname(), this.getPort()),30000);
+
             lastSocket = clientSocket;
             SocketCheck sc = new SocketCheck(clientSocket,getUnixtime());
             if(p.getProperty("kill.sockets").equals("true"))
@@ -455,14 +474,14 @@ public class MuninNode
     /**
      * @return the v_loaded_plugins
      */
-    public ArrayList<MuninPlugin> getLoadedPlugins() {
+    public CopyOnWriteArrayList<MuninPlugin> getLoadedPlugins() {
         return v_loaded_plugins;
     }
 
     /**
      * @param v_loaded_plugins the v_loaded_plugins to set
      */
-    public void setLoadedPlugins(ArrayList<MuninPlugin> v_loaded_plugins) {
+    public void setLoadedPlugins(CopyOnWriteArrayList<MuninPlugin> v_loaded_plugins) {
         this.v_loaded_plugins = v_loaded_plugins;
     }
 

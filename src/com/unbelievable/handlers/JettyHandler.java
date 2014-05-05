@@ -89,6 +89,11 @@ public class JettyHandler extends AbstractHandler
                         logger.info("query plugins for " + mn.getNodename());
                         writeJson(mn.getPluginList());
                     }
+                    if(l_lTargets.get(2).equals("loadplugins") && mn != null)
+                    {
+                        logger.info("loading  plugins for " + mn.getNodename());
+                        writeJson(mn.loadPlugins());
+                    }                    
                     // return graphs for a given plugin, start up node if not running
                     if(l_lTargets.get(2).equals("fetch") && l_lTargets.size() == 4 && mn != null)
                     {

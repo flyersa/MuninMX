@@ -193,11 +193,11 @@ public class muninmxcd {
             // scheduling jobs
             int i = 0;
             for (MuninNode it_mn : v_munin_nodes) {
-                if(i == 250)
+                if(i == 200)
                 {
-                    Thread.sleep(20000);
+                    Thread.sleep(15000);
                     i = 0;
-                    logger.info("Waiting 20s for new scheduling slot");
+                    logger.info("Waiting 15s for new scheduling slot");
                 }
                 scheduleJob(it_mn);
                 i++;

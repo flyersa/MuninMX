@@ -6,6 +6,7 @@ import static com.unbelievable.muninmxcd.logger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  *
@@ -28,7 +29,7 @@ public class Database {
         }
     }
     
-    public static void dbDeleteMissingPlugins(Integer nodeId,ArrayList<MuninPlugin> mps)
+    public static void dbDeleteMissingPlugins(Integer nodeId,CopyOnWriteArrayList<MuninPlugin> mps)
     {
         try {
             java.sql.Statement stmt = conn.createStatement();

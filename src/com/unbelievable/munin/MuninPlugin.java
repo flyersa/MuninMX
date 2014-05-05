@@ -130,14 +130,17 @@ public class MuninPlugin {
                 {
                     csMuninSocket = null;
                     csMuninSocket = new Socket();
-                    csMuninSocket.connect(new InetSocketAddress(p_strHostname, p_iPort),200);
+                    csMuninSocket.connect(new InetSocketAddress(p_strHostname, p_iPort),5000);
+                    csMuninSocket.setSoTimeout(5000);
                     logger.info("Reconnecting to " + p_strHostname);
                 }
             }
             else
             {
-                csMuninSocket = new Socket(p_strHostname, p_iPort);
-               
+                    csMuninSocket = new Socket();
+                    csMuninSocket.connect(new InetSocketAddress(p_strHostname, p_iPort),5000);
+                    csMuninSocket.setSoTimeout(5000);   
+                    csMuninSocket.setReuseAddress(false);
             }
             PrintStream os = new PrintStream( csMuninSocket.getOutputStream() );
             BufferedReader in = new BufferedReader(new InputStreamReader( csMuninSocket.getInputStream()) );

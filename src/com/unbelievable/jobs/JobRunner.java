@@ -25,7 +25,7 @@ public class JobRunner extends Thread implements Runnable {
     public void run() {
         mn = getMuninNode(nodeId);
         try{
-          
+            
             if(mn != null)
             {
               mn.run();
@@ -33,8 +33,14 @@ public class JobRunner extends Thread implements Runnable {
             else
             {
               logger.error("Tried to Run job for NodeID: " + nodeId + " but this node is not in nodelist :("); 
-            } 
-        } catch (Exception ex)
+            }  
+        } 
+        catch (ThreadDeath td)
+        {
+            logger.info(mn.getHostname() + "Monitoring job stopped - Terminated - " + td.getMessage()); 
+            return;
+        }
+        catch (Exception ex)
         {
             logger.info(mn.getHostname() + "Monitoring job stopped - Terminated");
             logger.error("JobRunner exception: " + ex.getLocalizedMessage());

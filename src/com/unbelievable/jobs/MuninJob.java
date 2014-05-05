@@ -21,28 +21,38 @@ public class MuninJob implements Job {
           
           Thread runner = new Thread(new JobRunner(nodeId));
           int maxAge = getUnixtime() + 60;
+          boolean keepMeRunning = true;
           
           runner.start();
           try
           {
-          while(true)
-          {
-              Thread.sleep(1000);
-              if(runner.isAlive())
-              {
-                  if(getUnixtime() > maxAge)
-                  {
-                    logger.warn("interrupting JobRunner for node: " + nodeId);
-                    runner.interrupt();
-                    
+            while(keepMeRunning)
+            {
+                Thread.sleep(1000);
+                if(runner.isAlive())
+                {
+                    if(getUnixtime() > maxAge)
+                    {
+                      keepMeRunning = false;
+                      logger.warn("interrupting JobRunner for node: " + nodeId);
+                      runner.interrupt();
+                      runner.suspend();
+                      runner.interrupt();
+                      if(runner.isAlive())
+                      {
+                          logger.warn("final call, stopping JobRunner after 2 unsuccessfull interrupts for node " + nodeId);
+                          runner.stop();
+                          Thread.sleep(100);
+                          runner.stop();
+                      }
+                      return;
+                    }
+                }
+                else
+                {
                     return;
-                  }
-              }
-              else
-              {
-                  return;
-              }
-          }
+                }
+            }
           } catch (Exception ex)
           {
               logger.error("Error in MuninJob: " + ex.getLocalizedMessage());
