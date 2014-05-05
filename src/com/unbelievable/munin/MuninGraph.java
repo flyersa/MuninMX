@@ -24,6 +24,7 @@ public class MuninGraph {
     private  boolean is_init = false;
     private int i_lastGraphFetch    =   0;
     private int i_lastQueued    = 0;
+    private int queryInterval = 0;
 
 
     public void setLastQueued(int p_time)
@@ -149,7 +150,7 @@ public class MuninGraph {
                 {
                     is_init = true;
                     bd_GraphValue = bd_GraphValue.subtract(bd_LastGraphValueCounter);
-                    bd_GraphValue = bd_GraphValue.divide(new BigDecimal(1000), 2, RoundingMode.HALF_UP);
+                    bd_GraphValue = bd_GraphValue.divide(new BigDecimal(""+this.getQueryInterval()), 2, RoundingMode.HALF_UP);
                 }
             }
             else
@@ -186,6 +187,15 @@ public class MuninGraph {
     public boolean isInit()
     {
         return this.is_init;
+    }
+
+    public void setQueryInterval(int p_queryInterval) {
+        this.queryInterval = p_queryInterval;
+    }
+
+    public int getQueryInterval() {
+        int retval = queryInterval * 60;
+        return retval;
     }
 
 }

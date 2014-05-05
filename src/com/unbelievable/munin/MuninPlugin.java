@@ -118,7 +118,7 @@ public class MuninPlugin {
      * will connect to munin if no connections exists and will update
      * values for all graphs, then return all graphs with updated stats
      */
-    public void updateAllGraps(String p_strHostname, int p_iPort, Socket p_socket)
+    public void updateAllGraps(String p_strHostname, int p_iPort, Socket p_socket, int p_queryInterval)
     {
         try
         {
@@ -161,8 +161,9 @@ public class MuninPlugin {
                     while (it.hasNext())
                     {
                         MuninGraph l_mg = (MuninGraph) it.next();
+                        l_mg.setQueryInterval(p_queryInterval);
                         if(l_mg.getGraphName().equals(l_graphName))
-                        {
+                        {                  
                             if(l_value.trim().length() < 1)
                             {
                                 l_mg.setGraphValue("0");

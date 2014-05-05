@@ -1,20 +1,20 @@
-/*
- * Copyright (c) 2014 by Clavain Technologies GbR.
- * http://www.clavain.com
- */
 package com.unbelievable.jobs;
 
 import com.unbelievable.munin.MuninNode;
 import static com.unbelievable.muninmxcd.logger;
 import static com.unbelievable.utils.Generic.getMuninNode;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author enricokern
  */
-public class JobRunner implements Runnable {
+public class JobRunner extends Thread implements Runnable {
 
     private int nodeId;
+    private MuninNode mn;
     
     public JobRunner(int p_nid)
     {
@@ -23,7 +23,7 @@ public class JobRunner implements Runnable {
     
     @Override
     public void run() {
-        MuninNode mn = getMuninNode(nodeId);
+        mn = getMuninNode(nodeId);
         try{
           
             if(mn != null)
@@ -33,7 +33,7 @@ public class JobRunner implements Runnable {
             else
             {
               logger.error("Tried to Run job for NodeID: " + nodeId + " but this node is not in nodelist :("); 
-            }            
+            } 
         } catch (Exception ex)
         {
             logger.info(mn.getHostname() + "Monitoring job stopped - Terminated");
@@ -42,4 +42,18 @@ public class JobRunner implements Runnable {
 
     }
     
+    @Override  
+    public void interrupt(){  
+       try
+       {  
+           mn.getLastSocket().close();
+           logger.info(mn.getHostname() + "Monitoring job called interrupt - closing socket");
+       }  
+        catch (IOException ex) {  
+            Logger.getLogger(JobRunner.class.getName()).log(Level.SEVERE, null, ex);
+        }       finally{  
+         super.interrupt();  
+       }  
+    }      
+
 }

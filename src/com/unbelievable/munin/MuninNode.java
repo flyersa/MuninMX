@@ -44,6 +44,7 @@ public class MuninNode
   private int       queryInterval    = 0;
   private int       last_plugin_load = 0;
   private boolean   is_init = false;
+  private transient Socket lastSocket;
   
   
     public void setQueryInterval(Integer p_int)
@@ -314,7 +315,7 @@ public class MuninNode
             else
             {
                 cs.close();
-                logger.warn("Plugins cannot be loaded for this node. Check connectivity or munin-node");
+                logger.warn("Error loading plugins on " + str_hostname + ". Check connectivity or munin-node");
             }
             for (MuninPlugin l_mn : getLoadedPlugins()) {
                 i_GraphCount = i_GraphCount + l_mn.getGraphs().size();
@@ -349,8 +350,11 @@ public class MuninNode
                     logger.info("[Job: " + getHostname() + "] Updating Database");
                     // update graphs in database too
                     for(MuninPlugin it_pl : getPluginList()) {
-                        //logger.info(it_pl.getPluginName());
-                        dbUpdatePluginForNode(getNode_id(),it_pl);
+                        if(it_pl.getGraphs().size() > 0)
+                        {
+                            //logger.info(it_pl.getPluginName());
+                            dbUpdatePluginForNode(getNode_id(),it_pl);
+                        }
                      }
                     // delete now missing plugins
                     dbDeleteMissingPlugins(getNode_id(),getPluginList());
@@ -359,7 +363,7 @@ public class MuninNode
                 }
                 else
                 {
-                    if(iCurTime > last_plugin_load )
+                    if(iCurTime > iPluginRefreshTime )
                     {
                         logger.info("Refreshing Plugins on " + this.getHostname());
                         this.loadPlugins();
@@ -374,6 +378,7 @@ public class MuninNode
             
             Socket clientSocket = new Socket();
             clientSocket.connect(new InetSocketAddress(this.getHostname(), this.getPort()),10000);
+            lastSocket = clientSocket;
             SocketCheck sc = new SocketCheck(clientSocket,getUnixtime());
             if(p.getProperty("kill.sockets").equals("true"))
             {  
@@ -391,7 +396,7 @@ public class MuninNode
                 {
                     logger.info(getHostname() + " fetching graphs for " + l_mp.getPluginName().toUpperCase());
                 }
-                l_mp.updateAllGraps(this.getHostname(), this.getPort(), clientSocket);
+                l_mp.updateAllGraps(this.getHostname(), this.getPort(), clientSocket, getQueryInterval());
                 // add all graphs to insertion queue for mongodb
                 queuePluginFetch(l_mp.returnAllGraphs(), l_mp.getPluginName());
             }
@@ -526,5 +531,12 @@ public class MuninNode
      */
     public void setUser_id(Integer user_id) {
         this.user_id = user_id;
+    }
+
+    /**
+     * @return the lastSocket
+     */
+    public Socket getLastSocket() {
+        return lastSocket;
     }
 }
