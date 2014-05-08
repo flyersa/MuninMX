@@ -1,14 +1,24 @@
 package com.unbelievable.utils;
 
 import com.unbelievable.jobs.MuninJob;
+import com.unbelievable.json.ScheduledJob;
 import com.unbelievable.munin.MuninNode;
-import static org.quartz.JobBuilder.newJob;
-import org.quartz.JobDetail;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import org.quartz.Trigger;
-import static org.quartz.TriggerBuilder.newTrigger;
 import static com.unbelievable.muninmxcd.logger;
 import static com.unbelievable.muninmxcd.sched;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.quartz.impl.matchers.GroupMatcher;
+import org.quartz.JobDetail;
+import org.quartz.SchedulerException;
+import static org.quartz.JobBuilder.*;
+import org.quartz.JobKey;
+import static org.quartz.TriggerBuilder.newTrigger;
+import static org.quartz.impl.matchers.GroupMatcher.groupEquals;
 /**
  *
  * @author enricokern
@@ -34,4 +44,83 @@ public class Quartz {
         }
         return l_retVal;
     }
+
+    public static boolean isScheduled(Integer p_nodeid, Integer p_user_id)
+    {
+        boolean l_retVal = false;
+        String jobSearch = p_user_id + "." + p_nodeid; 
+        try {
+            // enumerate each job group
+            for(String group: com.unbelievable.muninmxcd.sched.getJobGroupNames()) {
+                // enumerate each job in group
+                for(JobKey jobKey : com.unbelievable.muninmxcd.sched.getJobKeys((GroupMatcher<JobKey>) groupEquals(group))) {
+                    if(jobKey.toString().equals(jobSearch))
+                    {
+                        l_retVal = true;
+                    }
+                }
+            }
+        } catch (SchedulerException ex) {
+            logger.error("Error in isScheduled: " + ex.getLocalizedMessage());
+        }
+        return l_retVal;
+    }
+  
+    public static boolean isJobScheduled(int p_nodeid)
+    {
+        boolean retval = false;
+        String match = p_nodeid+"";
+        for(ScheduledJob sj : getScheduledJobs())
+        {
+            if(sj.getJobName().equals(match))
+            {
+                return true;
+            }
+        }
+        
+        return retval;
+    }    
+    
+    
+    public static boolean unscheduleCheck(String p_nodeid, String p_uid)
+    {
+        boolean l_retVal = false;
+        JobKey jk = new JobKey(p_nodeid,p_uid);
+        try {
+            com.unbelievable.muninmxcd.sched.deleteJob(jk);
+            l_retVal = true;
+        } catch (SchedulerException ex) {
+            logger.error("Error in unscheduleCheck: " + ex.getLocalizedMessage());
+        }
+        
+        return l_retVal;
+    }    
+    
+    public static ArrayList<ScheduledJob> getScheduledJobs()
+    {
+        ArrayList<ScheduledJob> retval = new ArrayList<>();
+        try {
+            for (String groupName : com.unbelievable.muninmxcd.sched.getJobGroupNames()) {
+
+                for (JobKey jobKey : com.unbelievable.muninmxcd.sched.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
+
+                     String jobName = jobKey.getName();
+                     String jobGroup = jobKey.getGroup();
+
+                     //get job's trigger
+                     List<Trigger> triggers = (List<Trigger>) com.unbelievable.muninmxcd.sched.getTriggersOfJob(jobKey);
+                     Date nextFireTime = triggers.get(0).getNextFireTime(); 
+                     ScheduledJob sj = new ScheduledJob();
+                     sj.setJobName(jobName);
+                     sj.setGroupName(jobGroup);
+                     sj.setNextFireTime(nextFireTime.toString());
+                     retval.add(sj);
+                     }
+
+               }
+        } catch (SchedulerException ex) {
+            logger.error("Error in getScheduledJobs(): " + ex.getLocalizedMessage());
+        }
+        return retval;
+    }      
 }

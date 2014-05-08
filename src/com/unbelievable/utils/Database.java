@@ -1,5 +1,6 @@
 package com.unbelievable.utils;
 
+import com.unbelievable.munin.MuninNode;
 import com.unbelievable.munin.MuninPlugin;
 import static com.unbelievable.muninmxcd.conn;
 import static com.unbelievable.muninmxcd.logger;
@@ -27,6 +28,30 @@ public class Database {
         {
             logger.error("Error in dbUpdatePlugin: " + ex.getLocalizedMessage());
         }
+    }
+    
+    public static MuninNode getMuninNodeFromDatabase(Integer nodeId)
+    {
+        MuninNode l_mn = null;
+        try
+        {
+            java.sql.Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM nodes WHERE id = " + nodeId);
+
+            while(rs.next())
+            {
+                l_mn.setHostname(rs.getString("hostname"));
+                l_mn.setNodename(rs.getString("hostname"));
+                l_mn.setNode_id(rs.getInt("id"));
+                l_mn.setPort(rs.getInt("port"));
+                l_mn.setUser_id(rs.getInt("user_id"));
+                l_mn.setQueryInterval(rs.getInt("query_interval"));               
+            }     
+        } catch (Exception ex)
+        {
+            logger.error("getMuninNodeFromDatabase Error: " + ex.getLocalizedMessage());
+        }
+        return l_mn;
     }
     
     public static void dbDeleteMissingPlugins(Integer nodeId,CopyOnWriteArrayList<MuninPlugin> mps)

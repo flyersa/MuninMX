@@ -14,9 +14,10 @@ import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import static com.unbelievable.utils.Generic.*;
+import static com.unbelievable.utils.Database.getMuninNodeFromDatabase;
 import static com.unbelievable.muninmxcd.v_munin_nodes;
 import com.unbelievable.munin.*;
-
+import static com.unbelievable.utils.Quartz.*;
 
 /**
  *
@@ -89,19 +90,74 @@ public class JettyHandler extends AbstractHandler
                         logger.info("query plugins for " + mn.getNodename());
                         writeJson(mn.getPluginList());
                     }
-                    if(l_lTargets.get(2).equals("loadplugins") && mn != null)
+                    else if(l_lTargets.get(2).equals("loadplugins") && mn != null)
                     {
                         logger.info("loading  plugins for " + mn.getNodename());
                         writeJson(mn.loadPlugins());
                     }                    
                     // return graphs for a given plugin, start up node if not running
-                    if(l_lTargets.get(2).equals("fetch") && l_lTargets.size() == 4 && mn != null)
+                    else if(l_lTargets.get(2).equals("fetch") && l_lTargets.size() == 4 && mn != null)
                     {
                         logger.debug("query plugin: " + l_lTargets.get(3) + " for node: " + mn.getNodename());
                         fetchPlugin(mn,l_lTargets.get(3).toString());
                     }
                 }
             }
+            // get joblist
+            else if (l_lTargets.get(0).equals("joblist"))
+            {                    
+                writeJson(getScheduledJobs());
+            }
+            // add a new job
+            else if(l_lTargets.get(0).equals("queuejob"))
+            {
+                if(l_lTargets.size() < 2)
+                {
+                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                     writer.println("no node id specified");  
+                   } 
+                   else
+                   {   
+                       Integer nodeId = Integer.parseInt(l_lTargets.get(1).toString());
+                       MuninNode l_mn = getMuninNodeFromDatabase(nodeId);
+                       unscheduleCheck(l_mn.getNode_id().toString(),l_mn.getUser_id().toString());
+                       com.unbelievable.muninmxcd.v_munin_nodes.add(l_mn);
+                       if(scheduleJob(l_mn))
+                       {
+                           writeJson(true);
+                       }
+                       else
+                       {
+                            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                            writer.println("queue error");                             
+                       }
+                   }   
+            }
+            // delete a job
+            else if(l_lTargets.get(0).equals("deletejob"))
+            {     
+                if(l_lTargets.size() < 2)
+                {
+                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                     writer.println("no node id and user_id specified");               
+                } 
+                else
+                {
+                    boolean ucRet = unscheduleCheck(l_lTargets.get(1).toString(), l_lTargets.get(2).toString());
+                    if(!ucRet)
+                    {
+                       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                       writer.println("unable to delete check, maybe its already deleted");                                
+                    }
+                    else
+                    {
+                        Integer nodeId = Integer.parseInt(l_lTargets.get(1).toString());
+                        writeJson(ucRet);
+                        com.unbelievable.muninmxcd.v_munin_nodes.remove(getMuninNode(nodeId));
+                        
+                    }
+                }
+            }       
         }
         else
         {
