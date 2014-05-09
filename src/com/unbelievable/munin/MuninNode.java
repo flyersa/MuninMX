@@ -19,6 +19,7 @@ import static com.unbelievable.utils.Generic.getUnixtime;
 import static com.unbelievable.muninmxcd.logMore;
 import static com.unbelievable.utils.Database.dbDeleteMissingPlugins;
 import static com.unbelievable.utils.Database.dbUpdatePluginForNode;
+import static com.unbelievable.utils.Database.dbUpdateLastContact;
 import static com.unbelievable.utils.Generic.isPluginIgnored;
 import com.unbelievable.utils.SocketCheck;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -431,6 +432,7 @@ public class MuninNode
            ex.printStackTrace();
         }
         int iRunTime = getUnixtime() - iCurTime;
+        dbUpdateLastContact(this.getNode_id());
         logger.info(getHostname() + " Monitoring job stopped - runtime: " + iRunTime);
         
     }

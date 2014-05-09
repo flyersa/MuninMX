@@ -30,9 +30,36 @@ public class Database {
         }
     }
     
+    public static void dbUpdateLastContact(Integer nodeId)
+    {
+        try {
+         java.sql.Statement stmt = conn.createStatement();
+         stmt.executeUpdate("UPDATE nodes SET last_contact = NOW() WHERE id = " + nodeId);
+        } catch (Exception ex)
+        {
+            logger.error("Error in dbUpdateLastContact: " + ex.getLocalizedMessage());
+            ex.printStackTrace();
+        }
+    }
+    
+    public static void dbUpdateAllPluginsForNode(MuninNode p_mn)
+    {
+        logger.info("[Job: " + p_mn.getHostname() + "] Updating Database");
+        // update graphs in database too
+        for(MuninPlugin it_pl : p_mn.getPluginList()) {
+            if(it_pl.getGraphs().size() > 0)
+            {
+                dbUpdatePluginForNode(p_mn.getNode_id(),it_pl);
+            }
+        }
+        // delete now missing plugins
+        dbDeleteMissingPlugins(p_mn.getNode_id(),p_mn.getPluginList());
+        logger.info("[Job: " + p_mn.getHostname() + "] Databaseupdate Done");
+    }
+    
     public static MuninNode getMuninNodeFromDatabase(Integer nodeId)
     {
-        MuninNode l_mn = null;
+        MuninNode l_mn = new MuninNode();
         try
         {
             java.sql.Statement stmt = conn.createStatement();
@@ -50,8 +77,17 @@ public class Database {
         } catch (Exception ex)
         {
             logger.error("getMuninNodeFromDatabase Error: " + ex.getLocalizedMessage());
+            ex.printStackTrace();
+            return null;
         }
-        return l_mn;
+        if(l_mn.getHostname().trim().equals("unset"))
+        {
+            return null;
+        }
+        else
+        {
+            return l_mn;
+        }
     }
     
     public static void dbDeleteMissingPlugins(Integer nodeId,CopyOnWriteArrayList<MuninPlugin> mps)

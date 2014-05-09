@@ -15,6 +15,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import static com.unbelievable.utils.Generic.*;
 import static com.unbelievable.utils.Database.getMuninNodeFromDatabase;
+import static com.unbelievable.utils.Database.dbUpdateAllPluginsForNode;
 import static com.unbelievable.muninmxcd.v_munin_nodes;
 import com.unbelievable.munin.*;
 import static com.unbelievable.utils.Quartz.*;
@@ -94,7 +95,8 @@ public class JettyHandler extends AbstractHandler
                     {
                         logger.info("loading  plugins for " + mn.getNodename());
                         writeJson(mn.loadPlugins());
-                    }                    
+                        dbUpdateAllPluginsForNode(mn);
+                    }                     
                     // return graphs for a given plugin, start up node if not running
                     else if(l_lTargets.get(2).equals("fetch") && l_lTargets.size() == 4 && mn != null)
                     {
