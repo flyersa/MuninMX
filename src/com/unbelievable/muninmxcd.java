@@ -36,6 +36,7 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerFactory;
 import org.quartz.impl.StdSchedulerFactory;
 import static com.unbelievable.utils.Generic.getUnixtime;
+import com.unbelievable.workers.NewNodeWatcher;
 /**
  *
  * @author enricokern
@@ -187,7 +188,7 @@ public class muninmxcd {
             sched = sf.getScheduler();   
             sched.start();   
             
-                        // starting API server
+            // starting API server
             new Thread(new JettyLauncher()).start();
             
             // scheduling jobs
@@ -203,10 +204,13 @@ public class muninmxcd {
                 i++;
             }
             
+            
+            
             // starting MongoExecutor
             new Thread(new MongoExecutor()).start();
             
-
+            // starting newnodewatcher
+            new Thread(new NewNodeWatcher()).start();
             
             int curTime;
             int toTime;

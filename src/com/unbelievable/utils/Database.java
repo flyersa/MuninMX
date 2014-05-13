@@ -2,21 +2,44 @@ package com.unbelievable.utils;
 
 import com.unbelievable.munin.MuninNode;
 import com.unbelievable.munin.MuninPlugin;
-import static com.unbelievable.muninmxcd.conn;
 import static com.unbelievable.muninmxcd.logger;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
-
+import static com.unbelievable.muninmxcd.p;
 /**
  *
  * @author enricokern
  */
 public class Database {
+    
+    // Establish a connection to the database
+    public static Connection connectToDatabase(Properties p)
+    {
+        Connection conn;
+        try {
+            logger.debug("Connecting to MySQL");
+            conn =
+               DriverManager.getConnection("jdbc:mysql://"+p.getProperty("mysql.host")+":"+p.getProperty("mysql.port")+"/"+p.getProperty("mysql.db")+"?" +
+                                           "user="+p.getProperty("mysql.user")+"&password="+p.getProperty("mysql.pass")+"");
+
+            return(conn);
+
+        } catch (Exception ex) {
+            // handle any errors
+            logger.fatal("Error connecting to database: " + ex.getMessage());
+            return(null);
+        }
+    }  
+    
     public static void dbUpdatePluginForNode(Integer nodeId, MuninPlugin mp)
     {
         try {
+            Connection conn = connectToDatabase(p);
             java.sql.Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * from node_plugins WHERE node_id = "+nodeId+" AND pluginname = '"+mp.getPluginName()+"'"); 
             if(rowCount(rs) < 1)
@@ -24,6 +47,7 @@ public class Database {
                 logger.info("[Node " + nodeId + "] Adding Plugin: " + mp.getPluginName() + " to database");
                 stmt.executeUpdate("INSERT INTO node_plugins (node_id,pluginname,plugintitle,plugininfo,plugincategory) VALUES ("+nodeId+",'"+mp.getPluginName()+"','"+mp.getPluginTitle()+"','"+mp.getPluginInfo()+"','"+mp.getStr_PluginCategory()+"')");
             }
+            conn.close();
         } catch (Exception ex)
         {
             logger.error("Error in dbUpdatePlugin: " + ex.getLocalizedMessage());
@@ -33,8 +57,10 @@ public class Database {
     public static void dbUpdateLastContact(Integer nodeId)
     {
         try {
+         Connection conn = connectToDatabase(p);   
          java.sql.Statement stmt = conn.createStatement();
          stmt.executeUpdate("UPDATE nodes SET last_contact = NOW() WHERE id = " + nodeId);
+         conn.close();
         } catch (Exception ex)
         {
             logger.error("Error in dbUpdateLastContact: " + ex.getLocalizedMessage());
@@ -62,6 +88,7 @@ public class Database {
         MuninNode l_mn = new MuninNode();
         try
         {
+            Connection conn = connectToDatabase(p);
             java.sql.Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * FROM nodes WHERE id = " + nodeId);
 
@@ -73,7 +100,8 @@ public class Database {
                 l_mn.setPort(rs.getInt("port"));
                 l_mn.setUser_id(rs.getInt("user_id"));
                 l_mn.setQueryInterval(rs.getInt("query_interval"));               
-            }     
+            }  
+            conn.close();
         } catch (Exception ex)
         {
             logger.error("getMuninNodeFromDatabase Error: " + ex.getLocalizedMessage());
@@ -93,6 +121,7 @@ public class Database {
     public static void dbDeleteMissingPlugins(Integer nodeId,CopyOnWriteArrayList<MuninPlugin> mps)
     {
         try {
+            Connection conn = connectToDatabase(p);
             java.sql.Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * from node_plugins WHERE node_id = "+nodeId); 
             boolean found = false;
@@ -113,6 +142,7 @@ public class Database {
                     stmtt.executeUpdate("DELETE FROM node_plugins WHERE id = "+rs.getInt("id"));
                 }
             }
+            conn.close();
         } catch (Exception ex)
         {
              logger.error("Error in dbDeleteMissingPlugins: " + ex.getLocalizedMessage());

@@ -35,11 +35,11 @@ public class MongoWorker implements Runnable {
                 {
                     plugin = doc.getString("plugin");
                     // each hostname got its own collection
-                    col = db.getCollection(doc.getString("user_id") + "_" + doc.getString("nodeid")+"_"+doc.getString("plugin"));
+                    col = db.getCollection(doc.getString("user_id") + "_" + doc.getString("nodeid"));
                     doc.removeField("hostname");
                     doc.removeField("nodeid");
                     doc.removeField("user_id");
-                    doc.removeField("plugin");
+                    //doc.removeField("plugin");
                     //db.requestStart();
                     col.insert(doc);
                     if(logMore)
