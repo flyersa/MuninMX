@@ -47,6 +47,7 @@ public class MuninNode
   private int       last_plugin_load = 0;
   private boolean   is_init = false;
   private transient Socket lastSocket;
+  private String    str_via = "unset";
   
   
     public void setQueryInterval(Integer p_int)
@@ -177,8 +178,14 @@ public class MuninNode
             cs.setSoLinger(true, 0);
             cs.setReuseAddress(false);  
             cs.setSoTimeout(30000);
-            cs.connect(new InetSocketAddress(this.getHostname(), this.getPort()),30000);
-            
+            if(!str_via.equals("unset"))
+            {
+                cs.connect(new InetSocketAddress(this.getStr_via(), this.getPort()),30000);    
+            }
+            else
+            {
+                cs.connect(new InetSocketAddress(this.getHostname(), this.getPort()),30000);
+            }
           
             if(p.getProperty("kill.sockets").equals("true"))
             {
@@ -202,7 +209,14 @@ public class MuninNode
                 this.str_muninVersion = version;
                 
                 // get list of available plugins
-                os.println("list");
+                if(str_via.equals("unset"))
+                {
+                    os.println("list");
+                }
+                else
+                {
+                    os.println("list " + str_hostname);
+                }
 
                 Thread.sleep(250);
                 s = in.readLine();
@@ -243,7 +257,7 @@ public class MuninNode
                       String l_strValue;
 
                       
-                      if(!l_tmp.contains("graph_") && !l_tmp.contains("multigraph") && !l_tmp.trim().equals("graph no") && !l_tmp.trim().equals("# Bad exit") && !l_tmp.trim().contains("info Currently our peer") && !l_tmp.trim().startsWith("#") && !l_tmp.trim().contains("Bonding interface errors"))
+                      if(!l_tmp.contains("graph_") && !l_tmp.contains("host_name") && !l_tmp.contains("multigraph") && !l_tmp.trim().equals("graph no") && !l_tmp.trim().equals("# Bad exit") && !l_tmp.trim().contains("info Currently our peer") && !l_tmp.trim().startsWith("#") && !l_tmp.trim().contains("Bonding interface errors"))
                       {
                         l_lastProceeded = l_tmp;
                         l_strName  = l_tmp.substring(0,l_tmp.indexOf("."));
@@ -350,8 +364,14 @@ public class MuninNode
     public void run() {
         b_isRunning = true;
 
-        logger.info(getHostname() + " Monitoring job started");
-        
+        if(this.str_via.equals("unset"))
+        {
+            logger.info(getHostname() + " Monitoring job started");
+        }
+        else
+        {
+            logger.info(getHostname() + " (VIA: "+this.str_via+") Monitoring job started");
+        }
         
         int iCurTime = getUnixtime();
         int iPluginRefreshTime = last_plugin_load + 86400;
@@ -395,9 +415,15 @@ public class MuninNode
             Socket clientSocket = new Socket();
             clientSocket.setSoTimeout(30000);
             clientSocket.setKeepAlive(false);
-            clientSocket.setReuseAddress(false);            
-            clientSocket.connect(new InetSocketAddress(this.getHostname(), this.getPort()),30000);
-
+            clientSocket.setReuseAddress(false);   
+            if(this.str_via.equals("unset"))
+            {            
+                clientSocket.connect(new InetSocketAddress(this.getHostname(), this.getPort()),30000);
+            }
+            else
+            {
+                clientSocket.connect(new InetSocketAddress(this.getStr_via(), this.getPort()),30000);
+            }
             lastSocket = clientSocket;
             SocketCheck sc = new SocketCheck(clientSocket,getUnixtime());
             if(p.getProperty("kill.sockets").equals("true"))
@@ -559,5 +585,19 @@ public class MuninNode
      */
     public Socket getLastSocket() {
         return lastSocket;
+    }
+
+    /**
+     * @return the str_via
+     */
+    public String getStr_via() {
+        return str_via;
+    }
+
+    /**
+     * @param str_via the str_via to set
+     */
+    public void setStr_via(String str_via) {
+        this.str_via = str_via;
     }
 }

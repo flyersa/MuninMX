@@ -99,7 +99,8 @@ public class Database {
                 l_mn.setNode_id(rs.getInt("id"));
                 l_mn.setPort(rs.getInt("port"));
                 l_mn.setUser_id(rs.getInt("user_id"));
-                l_mn.setQueryInterval(rs.getInt("query_interval"));               
+                l_mn.setQueryInterval(rs.getInt("query_interval"));  
+                l_mn.setStr_via(rs.getString("via_host"));
             }  
             conn.close();
         } catch (Exception ex)

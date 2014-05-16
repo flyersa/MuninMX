@@ -161,6 +161,7 @@ public class muninmxcd {
                 mn.setPort(rs.getInt("port"));
                 mn.setUser_id(rs.getInt("user_id"));
                 mn.setQueryInterval(rs.getInt("query_interval"));
+                mn.setStr_via(rs.getString("via_host"));
                 v_munin_nodes.add(mn);              
                 logger.info("* " + mn.getHostname() + " queued for pluginfetch");
             }
@@ -196,9 +197,9 @@ public class muninmxcd {
             for (MuninNode it_mn : v_munin_nodes) {
                 if(i == 200)
                 {
-                    Thread.sleep(15000);
+                    Thread.sleep(20000);
                     i = 0;
-                    logger.info("Waiting 15s for new scheduling slot");
+                    logger.info("Waiting 20s for new scheduling slot");
                 }
                 scheduleJob(it_mn);
                 i++;

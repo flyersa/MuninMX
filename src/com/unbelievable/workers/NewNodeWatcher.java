@@ -45,6 +45,7 @@ public class NewNodeWatcher implements Runnable {
                        mn.setPort(rs.getInt("port"));
                        mn.setUser_id(rs.getInt("user_id"));
                        mn.setQueryInterval(rs.getInt("query_interval"));
+                       mn.setStr_via(rs.getString("via_host"));
                        v_munin_nodes.add(mn); 
                        scheduleJob(mn);
                        logger.info("NewNodeWatcher found new node in database: " + mn.getHostname() + " added and job scheduled");
