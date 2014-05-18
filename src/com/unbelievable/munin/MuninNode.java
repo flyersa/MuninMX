@@ -257,7 +257,7 @@ public class MuninNode
                       String l_strValue;
 
                       
-                      if(!l_tmp.contains("graph_") && !l_tmp.contains("host_name") && !l_tmp.contains("multigraph") && !l_tmp.trim().equals("graph no") && !l_tmp.trim().equals("# Bad exit") && !l_tmp.trim().contains("info Currently our peer") && !l_tmp.trim().startsWith("#") && !l_tmp.trim().contains("Bonding interface errors"))
+                      if(!l_tmp.contains("graph_") && !l_tmp.trim().equals("") && !l_tmp.contains("host_name") && !l_tmp.contains("multigraph") && !l_tmp.trim().equals("graph no") && !l_tmp.trim().equals("# Bad exit") && !l_tmp.trim().contains("info Currently our peer") && !l_tmp.trim().startsWith("#") && !l_tmp.trim().contains("Bonding interface errors"))
                       {
                         l_lastProceeded = l_tmp;
                         l_strName  = l_tmp.substring(0,l_tmp.indexOf("."));
