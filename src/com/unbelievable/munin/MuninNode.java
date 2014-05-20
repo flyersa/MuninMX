@@ -18,6 +18,7 @@ import static com.unbelievable.muninmxcd.logger;
 import static com.unbelievable.utils.Generic.getUnixtime;
 import static com.unbelievable.muninmxcd.logMore;
 import static com.unbelievable.utils.Database.dbDeleteMissingPlugins;
+import static com.unbelievable.utils.Database.dbUpdateAllPluginsForNode;
 import static com.unbelievable.utils.Database.dbUpdatePluginForNode;
 import static com.unbelievable.utils.Database.dbUpdateLastContact;
 import static com.unbelievable.utils.Generic.isPluginIgnored;
@@ -403,6 +404,7 @@ public class MuninNode
                     {
                         logger.info("Refreshing Plugins on " + this.getHostname());
                         this.loadPlugins();
+                        dbUpdateAllPluginsForNode(this);
                     }
                 }
             }
