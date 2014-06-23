@@ -222,6 +222,14 @@ public class MuninNode
                 Thread.sleep(250);
                 s = in.readLine();
  
+                // if response is empty and host is not via, do a list $hostname
+                if(s.trim().equals("") && str_via.equals("unset"))
+                {
+                    logger.info("Plugin Response Empty on " + this.getHostname() + " trying to load with list $hostname");
+                    os.println("list " + this.getHostname());
+                    Thread.sleep(250);
+                    s = in.readLine();
+                }
                 
                 String l_tmp;
                 StringTokenizer l_st = new StringTokenizer(s, " ");
