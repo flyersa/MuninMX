@@ -149,6 +149,7 @@ public class MuninGraph {
                 else
                 {
                     is_init = true;
+                    
                     bd_GraphValue = bd_GraphValue.subtract(bd_LastGraphValueCounter);
                     bd_GraphValue = bd_GraphValue.divide(new BigDecimal(""+this.getQueryInterval()), 2, RoundingMode.HALF_UP);
                 }

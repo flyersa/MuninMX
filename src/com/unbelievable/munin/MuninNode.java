@@ -388,7 +388,7 @@ public class MuninNode
             // update plugins, maybe we have some new :)
             // double try to load plugins if fail
        
-            if(getPluginList().size() > 1)
+            if(getPluginList().size() > 0)
             {
                 if(!is_init)
                 {
