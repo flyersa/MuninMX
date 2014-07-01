@@ -1,4 +1,10 @@
-package com.unbelievable.workers;
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.workers;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -6,10 +12,10 @@ import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoOptions;
 
-import static com.unbelievable.muninmxcd.m;
-import static com.unbelievable.muninmxcd.mongo_queue;
-import static com.unbelievable.muninmxcd.logMore;
-import static com.unbelievable.muninmxcd.logger;
+import static com.clavain.muninmxcd.m;
+import static com.clavain.muninmxcd.mongo_queue;
+import static com.clavain.muninmxcd.logMore;
+import static com.clavain.muninmxcd.logger;
 import java.util.Iterator;
 
 /**

@@ -1,10 +1,16 @@
-package com.unbelievable.utils;
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.utils;
 
-import com.unbelievable.munin.MuninNode;
+import com.clavain.munin.MuninNode;
 import java.util.Iterator;
 
-import static com.unbelievable.muninmxcd.p;
-import static com.unbelievable.muninmxcd.v_munin_nodes;
+import static com.clavain.muninmxcd.p;
+import static com.clavain.muninmxcd.v_munin_nodes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -25,7 +31,7 @@ public class Generic {
      */
     public static MuninNode getMuninNode(String p_strNodename)
     {
-        for (MuninNode l_mn : com.unbelievable.muninmxcd.v_munin_nodes) {
+        for (MuninNode l_mn : com.clavain.muninmxcd.v_munin_nodes) {
             if(l_mn.getNodename().equals(p_strNodename) || l_mn.getHostname().equals(p_strNodename))
             {
                 return l_mn;
@@ -50,7 +56,7 @@ public class Generic {
                 return l_mn;
              }
         }
-        com.unbelievable.muninmxcd.logger.warn("getMuninNode: Cant find nodeId " + nodeId);
+        com.clavain.muninmxcd.logger.warn("getMuninNode: Cant find nodeId " + nodeId);
         return null;
     }  
     

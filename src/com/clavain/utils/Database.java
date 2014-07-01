@@ -1,8 +1,14 @@
-package com.unbelievable.utils;
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.utils;
 
-import com.unbelievable.munin.MuninNode;
-import com.unbelievable.munin.MuninPlugin;
-import static com.unbelievable.muninmxcd.logger;
+import com.clavain.munin.MuninNode;
+import com.clavain.munin.MuninPlugin;
+import static com.clavain.muninmxcd.logger;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -10,7 +16,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
-import static com.unbelievable.muninmxcd.p;
+import static com.clavain.muninmxcd.p;
 /**
  *
  * @author enricokern

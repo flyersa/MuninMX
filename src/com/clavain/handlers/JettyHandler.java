@@ -1,5 +1,13 @@
-package com.unbelievable.handlers;
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.handlers;
 
+import com.clavain.munin.MuninNode;
+import com.clavain.munin.MuninPlugin;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -13,12 +21,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import static com.unbelievable.utils.Generic.*;
-import static com.unbelievable.utils.Database.getMuninNodeFromDatabase;
-import static com.unbelievable.utils.Database.dbUpdateAllPluginsForNode;
-import static com.unbelievable.muninmxcd.v_munin_nodes;
-import com.unbelievable.munin.*;
-import static com.unbelievable.utils.Quartz.*;
+import static com.clavain.utils.Generic.*;
+import static com.clavain.utils.Database.getMuninNodeFromDatabase;
+import static com.clavain.utils.Database.dbUpdateAllPluginsForNode;
+import static com.clavain.muninmxcd.v_munin_nodes;
+import static com.clavain.utils.Quartz.*;
 
 /**
  *
@@ -39,7 +46,7 @@ public class JettyHandler extends AbstractHandler
         }
         response = p_response;
         response.setContentType("text/html;charset=utf-8");
-        response.setHeader("Server", "MuninMXcd" + com.unbelievable.muninmxcd.version);
+        response.setHeader("Server", "MuninMXcd" + com.clavain.muninmxcd.version);
         response.setHeader("Access-Control-Allow-Origin", "*");
         
         writer = response.getWriter();
@@ -123,7 +130,7 @@ public class JettyHandler extends AbstractHandler
                        Integer nodeId = Integer.parseInt(l_lTargets.get(1).toString());
                        MuninNode l_mn = getMuninNodeFromDatabase(nodeId);
                        unscheduleCheck(l_mn.getNode_id().toString(),l_mn.getUser_id().toString());
-                       com.unbelievable.muninmxcd.v_munin_nodes.add(l_mn);
+                       com.clavain.muninmxcd.v_munin_nodes.add(l_mn);
                        if(scheduleJob(l_mn))
                        {
                            writeJson(true);
@@ -155,7 +162,7 @@ public class JettyHandler extends AbstractHandler
                     {
                         Integer nodeId = Integer.parseInt(l_lTargets.get(1).toString());
                         writeJson(ucRet);
-                        com.unbelievable.muninmxcd.v_munin_nodes.remove(getMuninNode(nodeId));
+                        com.clavain.muninmxcd.v_munin_nodes.remove(getMuninNode(nodeId));
                         
                     }
                 }

@@ -1,5 +1,10 @@
-
-package com.unbelievable.utils;
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.utils;
 
 import java.io.IOException;
 import java.net.Socket;

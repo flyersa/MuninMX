@@ -1,5 +1,10 @@
-
-package com.unbelievable.json;
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.json;
 
 /**
  *

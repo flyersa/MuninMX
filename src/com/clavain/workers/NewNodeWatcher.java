@@ -1,8 +1,13 @@
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.workers;
 
-package com.unbelievable.workers;
-
-import com.unbelievable.munin.MuninNode;
-import static com.unbelievable.muninmxcd.logger;
+import com.clavain.munin.MuninNode;
+import static com.clavain.muninmxcd.logger;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -10,11 +15,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
-import static com.unbelievable.muninmxcd.p;
-import static com.unbelievable.muninmxcd.v_munin_nodes;
-import static com.unbelievable.utils.Database.connectToDatabase;
-import static com.unbelievable.utils.Generic.getMuninNode;
-import static com.unbelievable.utils.Quartz.scheduleJob;
+import static com.clavain.muninmxcd.p;
+import static com.clavain.muninmxcd.v_munin_nodes;
+import static com.clavain.utils.Database.connectToDatabase;
+import static com.clavain.utils.Generic.getMuninNode;
+import static com.clavain.utils.Quartz.scheduleJob;
 
 /**
  *

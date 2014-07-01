@@ -1,6 +1,11 @@
 /*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
  */
-package com.unbelievable.munin;
+
+package com.clavain.munin;
 
 import com.mongodb.BasicDBObject;
 import java.io.BufferedReader;
@@ -13,16 +18,16 @@ import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static com.unbelievable.muninmxcd.p;
-import static com.unbelievable.muninmxcd.logger;
-import static com.unbelievable.utils.Generic.getUnixtime;
-import static com.unbelievable.muninmxcd.logMore;
-import static com.unbelievable.utils.Database.dbDeleteMissingPlugins;
-import static com.unbelievable.utils.Database.dbUpdateAllPluginsForNode;
-import static com.unbelievable.utils.Database.dbUpdatePluginForNode;
-import static com.unbelievable.utils.Database.dbUpdateLastContact;
-import static com.unbelievable.utils.Generic.isPluginIgnored;
-import com.unbelievable.utils.SocketCheck;
+import static com.clavain.muninmxcd.p;
+import static com.clavain.muninmxcd.logger;
+import static com.clavain.utils.Generic.getUnixtime;
+import static com.clavain.muninmxcd.logMore;
+import static com.clavain.utils.Database.dbDeleteMissingPlugins;
+import static com.clavain.utils.Database.dbUpdateAllPluginsForNode;
+import static com.clavain.utils.Database.dbUpdatePluginForNode;
+import static com.clavain.utils.Database.dbUpdateLastContact;
+import static com.clavain.utils.Generic.isPluginIgnored;
+import com.clavain.utils.SocketCheck;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -192,7 +197,7 @@ public class MuninNode
             {
                 SocketCheck sc = new SocketCheck(cs,getUnixtime());
                 sc.setHostname(this.getHostname());
-                com.unbelievable.muninmxcd.v_sockets.add(sc);
+                com.clavain.muninmxcd.v_sockets.add(sc);
             }
             PrintStream os = new PrintStream( cs.getOutputStream() );
             BufferedReader in = new BufferedReader(new InputStreamReader( cs.getInputStream()) );  
@@ -439,7 +444,7 @@ public class MuninNode
             if(p.getProperty("kill.sockets").equals("true"))
             {  
                 sc.setHostname(this.getHostname());
-                com.unbelievable.muninmxcd.v_sockets.add(sc);
+                com.clavain.muninmxcd.v_sockets.add(sc);
             }
             this.i_lastRun = getUnixtime();
 
@@ -460,7 +465,7 @@ public class MuninNode
             
             if(p.getProperty("kill.sockets").equals("true"))
             {
-                com.unbelievable.muninmxcd.v_sockets.remove(sc);
+                com.clavain.muninmxcd.v_sockets.remove(sc);
             }
             sc = null;
         } catch (Exception ex) {
@@ -496,7 +501,7 @@ public class MuninNode
             // only queue if plugin is initialized or it is a if_err plugin
             if(mg.isInit() || p_strPluginName.startsWith("if_err") || p_strPluginName.equals("swap"))
             {
-                com.unbelievable.muninmxcd.mongo_queue.add(doc);
+                com.clavain.muninmxcd.mongo_queue.add(doc);
                 mg.setLastQueued(getUnixtime());
                 
                 logger.debug("Queued: " + this.getHostname() + " (" + p_strPluginName + " / " + mg.getGraphName() + ") Value: " + mg.getGraphValue());

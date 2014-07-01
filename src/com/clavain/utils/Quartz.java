@@ -1,12 +1,18 @@
-package com.unbelievable.utils;
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.utils;
 
-import com.unbelievable.jobs.MuninJob;
-import com.unbelievable.json.ScheduledJob;
-import com.unbelievable.munin.MuninNode;
+import com.clavain.jobs.MuninJob;
+import com.clavain.json.ScheduledJob;
+import com.clavain.munin.MuninNode;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import org.quartz.Trigger;
-import static com.unbelievable.muninmxcd.logger;
-import static com.unbelievable.muninmxcd.sched;
+import static com.clavain.muninmxcd.logger;
+import static com.clavain.muninmxcd.sched;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -51,9 +57,9 @@ public class Quartz {
         String jobSearch = p_user_id + "." + p_nodeid; 
         try {
             // enumerate each job group
-            for(String group: com.unbelievable.muninmxcd.sched.getJobGroupNames()) {
+            for(String group: com.clavain.muninmxcd.sched.getJobGroupNames()) {
                 // enumerate each job in group
-                for(JobKey jobKey : com.unbelievable.muninmxcd.sched.getJobKeys((GroupMatcher<JobKey>) groupEquals(group))) {
+                for(JobKey jobKey : com.clavain.muninmxcd.sched.getJobKeys((GroupMatcher<JobKey>) groupEquals(group))) {
                     if(jobKey.toString().equals(jobSearch))
                     {
                         l_retVal = true;
@@ -87,7 +93,7 @@ public class Quartz {
         boolean l_retVal = false;
         JobKey jk = new JobKey(p_nodeid,p_uid);
         try {
-            com.unbelievable.muninmxcd.sched.deleteJob(jk);
+            com.clavain.muninmxcd.sched.deleteJob(jk);
             l_retVal = true;
         } catch (SchedulerException ex) {
             logger.error("Error in unscheduleCheck: " + ex.getLocalizedMessage());
@@ -100,15 +106,15 @@ public class Quartz {
     {
         ArrayList<ScheduledJob> retval = new ArrayList<>();
         try {
-            for (String groupName : com.unbelievable.muninmxcd.sched.getJobGroupNames()) {
+            for (String groupName : com.clavain.muninmxcd.sched.getJobGroupNames()) {
 
-                for (JobKey jobKey : com.unbelievable.muninmxcd.sched.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
+                for (JobKey jobKey : com.clavain.muninmxcd.sched.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
 
                      String jobName = jobKey.getName();
                      String jobGroup = jobKey.getGroup();
 
                      //get job's trigger
-                     List<Trigger> triggers = (List<Trigger>) com.unbelievable.muninmxcd.sched.getTriggersOfJob(jobKey);
+                     List<Trigger> triggers = (List<Trigger>) com.clavain.muninmxcd.sched.getTriggersOfJob(jobKey);
                      Date nextFireTime = triggers.get(0).getNextFireTime(); 
                      ScheduledJob sj = new ScheduledJob();
                      sj.setJobName(jobName);

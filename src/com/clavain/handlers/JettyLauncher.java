@@ -1,9 +1,15 @@
-package com.unbelievable.handlers;
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.handlers;
 
 
 import org.eclipse.jetty.server.Server;
-import static com.unbelievable.muninmxcd.logger;
-import static com.unbelievable.muninmxcd.p;
+import static com.clavain.muninmxcd.logger;
+import static com.clavain.muninmxcd.p;
 /**
  *
  * @author enricokern

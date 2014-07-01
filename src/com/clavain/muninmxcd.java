@@ -1,4 +1,10 @@
-package com.unbelievable;
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -7,11 +13,11 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
-import com.unbelievable.executors.MongoExecutor;
-import com.unbelievable.handlers.JettyLauncher;
-import com.unbelievable.munin.MuninNode;
-import com.unbelievable.munin.MuninPlugin;
-import com.unbelievable.workers.PluginUpdater;
+import com.clavain.executors.MongoExecutor;
+import com.clavain.handlers.JettyLauncher;
+import com.clavain.munin.MuninNode;
+import com.clavain.munin.MuninPlugin;
+import com.clavain.workers.PluginUpdater;
 import java.io.FileInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -26,17 +32,17 @@ import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import static com.unbelievable.utils.Database.*;
-import static com.unbelievable.utils.Quartz.*;
-import com.unbelievable.utils.SocketCheck;
-import com.unbelievable.workers.MongoWorker;
+import static com.clavain.utils.Database.*;
+import static com.clavain.utils.Quartz.*;
+import com.clavain.utils.SocketCheck;
+import com.clavain.workers.MongoWorker;
 import java.util.Collections;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerFactory;
 import org.quartz.impl.StdSchedulerFactory;
-import static com.unbelievable.utils.Generic.getUnixtime;
-import com.unbelievable.workers.NewNodeWatcher;
+import static com.clavain.utils.Generic.getUnixtime;
+import com.clavain.workers.NewNodeWatcher;
 /**
  *
  * @author enricokern

@@ -1,4 +1,10 @@
-package com.unbelievable.munin;
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.munin;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -9,10 +15,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
-import static com.unbelievable.muninmxcd.p;
-import static com.unbelievable.muninmxcd.logger;
-import static com.unbelievable.utils.Generic.getUnixtime;
-import static com.unbelievable.muninmxcd.logMore;
+import static com.clavain.muninmxcd.p;
+import static com.clavain.muninmxcd.logger;
+import static com.clavain.utils.Generic.getUnixtime;
+import static com.clavain.muninmxcd.logMore;
 /**
  *
  * @author enricokern

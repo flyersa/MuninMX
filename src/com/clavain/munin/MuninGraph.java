@@ -1,9 +1,15 @@
-package com.unbelievable.munin;
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.munin;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import static com.unbelievable.muninmxcd.p;
-import static com.unbelievable.utils.Generic.getUnixtime;
+import static com.clavain.muninmxcd.p;
+import static com.clavain.utils.Generic.getUnixtime;
 
 /**
  *

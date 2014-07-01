@@ -1,11 +1,16 @@
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.executors;
 
-package com.unbelievable.executors;
-
-import static com.unbelievable.muninmxcd.logger;
-import static com.unbelievable.muninmxcd.p;
+import static com.clavain.muninmxcd.logger;
+import static com.clavain.muninmxcd.p;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import com.unbelievable.workers.MongoWorker;
+import com.clavain.workers.MongoWorker;
 
 /**
  *

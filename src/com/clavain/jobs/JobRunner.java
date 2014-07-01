@@ -1,8 +1,14 @@
-package com.unbelievable.jobs;
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.jobs;
 
-import com.unbelievable.munin.MuninNode;
-import static com.unbelievable.muninmxcd.logger;
-import static com.unbelievable.utils.Generic.getMuninNode;
+import com.clavain.munin.MuninNode;
+import static com.clavain.muninmxcd.logger;
+import static com.clavain.utils.Generic.getMuninNode;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;

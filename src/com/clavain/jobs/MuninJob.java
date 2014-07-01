@@ -1,13 +1,18 @@
+/*
+ * MuninMX
+ * Copyright (c) 2014
+ * www.clavain.com
+ * 
+ */
+package com.clavain.jobs;
 
-package com.unbelievable.jobs;
-
-import com.unbelievable.munin.MuninNode;
+import com.clavain.munin.MuninNode;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import static com.unbelievable.utils.Generic.*;
-import static com.unbelievable.muninmxcd.logger;
+import static com.clavain.utils.Generic.*;
+import static com.clavain.muninmxcd.logger;
 /**
  *
  * @author enricokern
