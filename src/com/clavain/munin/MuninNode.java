@@ -241,6 +241,8 @@ public class MuninNode
                 
                 // create plugin
                 MuninPlugin l_mp = new MuninPlugin();
+                // negative support
+                ArrayList<String> tmp_negatives = new ArrayList<String>();
                 
                 while(l_st.hasMoreTokens())
                 {
@@ -302,7 +304,12 @@ public class MuninNode
                         else if(l_strType.equals("info"))
                         {
                             l_mg.setGraphInfo(l_strValue);
-                        }                        
+                        }
+                        else if(l_strType.equals("negative"))
+                        {
+                            // add to temporary negative list to set negatives later
+                            tmp_negatives.add(l_strValue);
+                        }
 
                         //System.out.println(l_strName); 
                         //System.out.println(l_strType);
@@ -334,14 +341,27 @@ public class MuninNode
                       
                     }
                   
+                    
                     // add to pluginlist
                     l_mp.addGraph(l_mg);
+                    
+                   Iterator it = l_mp.getGraphs().iterator();
+                   while(it.hasNext())
+                   {
+                       MuninGraph l_mpNg = (MuninGraph) it.next();
+                       if(tmp_negatives.contains(l_mpNg.getGraphName()))
+                       {
+                           l_mpNg.setNegative(true);
+                       }
+                   }
                     
                     // add plugin if it got valid graphs
                     if(l_mp.getGraphs().size() > 0)
                     {
                         getLoadedPlugins().add(l_mp);
                     }
+                    // flush temporary negatives
+                    tmp_negatives.clear();
                     l_mp = null;
                     l_mp = new MuninPlugin();
                     //String l_strGraphTitle = s.substring(s.indexOf("graph_title") + 11,s.length());

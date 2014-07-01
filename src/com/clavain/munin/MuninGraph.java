@@ -21,6 +21,7 @@ public class MuninGraph {
     private String str_GraphInfo;
     private String str_GraphType;
     private String str_GraphDraw;
+    private boolean b_isNegative = false;
     // stores the number from the current run, on COUNTER it is bdGraphValue-bd_LastGraphValue;
     private BigDecimal bd_GraphValue = new BigDecimal("0");
     // last graph value contains the value from the last query, it is required
@@ -203,6 +204,20 @@ public class MuninGraph {
     public int getQueryInterval() {
         int retval = queryInterval * 60;
         return retval;
+    }
+
+    /**
+     * @return the b_isNegative
+     */
+    public boolean isNegative() {
+        return b_isNegative;
+    }
+
+    /**
+     * @param b_isNegative the b_isNegative to set
+     */
+    public void setNegative(boolean b_isNegative) {
+        this.b_isNegative = b_isNegative;
     }
 
 }
