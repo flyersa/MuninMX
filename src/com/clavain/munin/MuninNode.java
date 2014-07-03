@@ -42,10 +42,10 @@ public class MuninNode
   private int       i_port          = 4949;
   private String    str_group;
   private boolean   b_isRunning     = false;
-  private long      l_lastFrontendQuery;   
+  private transient long  l_lastFrontendQuery;   
   private String    str_muninVersion = "";
   private transient CopyOnWriteArrayList<MuninPlugin> v_loaded_plugins;
-  private int       i_GraphCount    = 0;
+  private transient int       i_GraphCount    = 0;
   private int       i_lastRun        = 0;
   private Integer   node_id          = 0;
   private Integer   user_id          = 0;

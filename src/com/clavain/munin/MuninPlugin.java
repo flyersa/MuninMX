@@ -30,7 +30,7 @@ public class MuninPlugin {
     private String str_PluginCategory;
     private String str_PluginLabel;
     private long   l_lastFrontendQuery;
-    private long   l_lastMuninQuery;
+    private transient long   l_lastMuninQuery;
     private transient Socket csMuninSocket;
     
     private ArrayList<MuninGraph> v_graphs = new ArrayList<MuninGraph>();;
