@@ -222,8 +222,9 @@ public class MuninNode
                     {
                         os.println("config muninmxauth");
                         Thread.sleep(150);
+                        String apw = in.readLine();
                         s = in.readLine();
-                        if(!s.trim().equals(this.getAuthpw()))
+                        if(!apw.trim().equals(this.getAuthpw()))
                         {
                             logger.error("Invalid muninmxauth password for host: " + this.getHostname());
                             cs.close();
