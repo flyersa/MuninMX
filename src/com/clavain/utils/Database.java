@@ -107,6 +107,7 @@ public class Database {
                 l_mn.setUser_id(rs.getInt("user_id"));
                 l_mn.setQueryInterval(rs.getInt("query_interval"));  
                 l_mn.setStr_via(rs.getString("via_host"));
+                l_mn.setAuthpw(rs.getString("authpw"));
             }  
             conn.close();
         } catch (Exception ex)

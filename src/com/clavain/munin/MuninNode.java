@@ -51,6 +51,7 @@ public class MuninNode
   private Integer   user_id          = 0;
   private int       queryInterval    = 0;
   private int       last_plugin_load = 0;
+  private String    authpw           = "";
   private boolean   is_init = false;
   private transient Socket lastSocket;
   private String    str_via = "unset";
@@ -208,11 +209,25 @@ public class MuninNode
             {
                 // Set version
                 os.println("version");
-                Thread.sleep(250);
+                Thread.sleep(150);
                 s = in.readLine();
                 
                 String version = s.substring(s.indexOf(":")+1,s.length()).trim();
                 this.str_muninVersion = version;
+                
+                // if authpw is set, verify
+                if(!this.getAuthpw().trim().equals(""))
+                {
+                    os.println("config muninmxauth");
+                    Thread.sleep(150);
+                    s = in.readLine();
+                    if(!s.trim().equals(this.getAuthpw()))
+                    {
+                        logger.error("Invalid muninmxauth password for host: " + this.getHostname());
+                        cs.close();
+                        return false;
+                    }
+                }
                 
                 // get list of available plugins
                 if(str_via.equals("unset"))
@@ -634,5 +649,19 @@ public class MuninNode
      */
     public void setStr_via(String str_via) {
         this.str_via = str_via;
+    }
+
+    /**
+     * @return the authpw
+     */
+    public String getAuthpw() {
+        return authpw;
+    }
+
+    /**
+     * @param authpw the authpw to set
+     */
+    public void setAuthpw(String authpw) {
+        this.authpw = authpw;
     }
 }

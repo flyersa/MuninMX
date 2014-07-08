@@ -168,6 +168,7 @@ public class muninmxcd {
                 mn.setUser_id(rs.getInt("user_id"));
                 mn.setQueryInterval(rs.getInt("query_interval"));
                 mn.setStr_via(rs.getString("via_host"));
+                mn.setAuthpw(rs.getString("authpw"));
                 v_munin_nodes.add(mn);              
                 logger.info("* " + mn.getHostname() + " queued for pluginfetch");
             }
