@@ -215,17 +215,20 @@ public class MuninNode
                 String version = s.substring(s.indexOf(":")+1,s.length()).trim();
                 this.str_muninVersion = version;
                 
-                // if authpw is set, verify
-                if(!this.getAuthpw().trim().equals(""))
+                if(authpw != null)
                 {
-                    os.println("config muninmxauth");
-                    Thread.sleep(150);
-                    s = in.readLine();
-                    if(!s.trim().equals(this.getAuthpw()))
+                    // if authpw is set, verify
+                    if(!authpw.trim().equals(""))
                     {
-                        logger.error("Invalid muninmxauth password for host: " + this.getHostname());
-                        cs.close();
-                        return false;
+                        os.println("config muninmxauth");
+                        Thread.sleep(150);
+                        s = in.readLine();
+                        if(!s.trim().equals(this.getAuthpw()))
+                        {
+                            logger.error("Invalid muninmxauth password for host: " + this.getHostname());
+                            cs.close();
+                            return false;
+                        }
                     }
                 }
                 
