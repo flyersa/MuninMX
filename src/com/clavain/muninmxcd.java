@@ -58,7 +58,9 @@ public class muninmxcd {
     public static String version    = "0.1 <Codename: Frog in Blender>";
     public static Connection conn = null;    
     public static CopyOnWriteArrayList<MuninNode> v_munin_nodes;
+    public static CopyOnWriteArrayList<MuninPlugin> v_cinterval_plugins;
     public static Scheduler sched;
+    public static Scheduler sched_custom;
     public static CopyOnWriteArrayList<SocketCheck> v_sockets;
     
     /**
@@ -155,7 +157,9 @@ public class muninmxcd {
             // PreFilling Nodes, max 100 in concurrent
             logger.info("Loading initial MuninNode details. This can take a few minutes...");
             v_munin_nodes = new CopyOnWriteArrayList<>();
+            v_cinterval_plugins = new CopyOnWriteArrayList<>();     
             v_sockets = new CopyOnWriteArrayList<>();
+            
             java.sql.Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * FROM nodes");
             while(rs.next())
@@ -178,6 +182,12 @@ public class muninmxcd {
             SchedulerFactory sf = new StdSchedulerFactory("quartz.properties");
             sched = sf.getScheduler();   
             sched.start();   
+ 
+            // launching quartz scheduler for custom interval
+            logger.info("Launching Custom Interval Scheduler");
+            SchedulerFactory sfc = new StdSchedulerFactory("quartz.properties");
+            sched_custom = sfc.getScheduler();   
+            sched_custom.start();
             
             // starting API server
             new Thread(new JettyLauncher()).start();
@@ -195,6 +205,7 @@ public class muninmxcd {
                 i++;
             }
             
+            // schedule custom interval jobs
             
             
             // starting MongoExecutor

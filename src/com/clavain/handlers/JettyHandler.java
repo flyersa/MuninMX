@@ -79,6 +79,11 @@ public class JettyHandler extends AbstractHandler
                         listNodes();
                     }
                 }
+                // custom interval plugins
+                else if(l_lTargets.get(1).equals("customintervals"))
+                {
+                    writeJson(com.clavain.muninmxcd.v_cinterval_plugins);
+                }
             }
             // query a node
             else if(l_lTargets.get(0).equals("node"))

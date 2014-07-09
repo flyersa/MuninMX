@@ -496,7 +496,15 @@ public class MuninNode
                 {
                     logger.info(getHostname() + " fetching graphs for " + l_mp.getPluginName().toUpperCase());
                 }
-                l_mp.updateAllGraps(this.getHostname(), this.getPort(), clientSocket, getQueryInterval());
+                // snmp support
+                if(!str_via.equals("unset"))
+                { 
+                    l_mp.updateAllGraps(this.getStr_via(), this.getPort(), clientSocket, getQueryInterval());
+                }  
+                else
+                {
+                    l_mp.updateAllGraps(this.getHostname(), this.getPort(), clientSocket, getQueryInterval());
+                }
                 // add all graphs to insertion queue for mongodb
                 queuePluginFetch(l_mp.returnAllGraphs(), l_mp.getPluginName());
             }

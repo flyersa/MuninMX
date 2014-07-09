@@ -9,6 +9,7 @@ package com.clavain.utils;
 import com.clavain.jobs.MuninJob;
 import com.clavain.json.ScheduledJob;
 import com.clavain.munin.MuninNode;
+import com.clavain.munin.MuninPlugin;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import org.quartz.Trigger;
 import static com.clavain.muninmxcd.logger;
@@ -101,6 +102,14 @@ public class Quartz {
         
         return l_retVal;
     }    
+    
+    // schedule a custom interval check
+    public static boolean scheduleCustomIntervalJob(Integer p_cid)
+    {
+        boolean retval = false;
+        
+        return retval;
+    }
     
     public static ArrayList<ScheduledJob> getScheduledJobs()
     {

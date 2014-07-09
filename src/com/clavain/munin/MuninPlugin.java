@@ -33,7 +33,7 @@ public class MuninPlugin {
     private transient long   l_lastMuninQuery;
     private transient Socket csMuninSocket;
     private transient boolean b_IntervalIsSeconds = false;
-    
+    private transient int i_nodeId;
     private ArrayList<MuninGraph> v_graphs = new ArrayList<MuninGraph>();;
 
     
@@ -269,5 +269,19 @@ public class MuninPlugin {
      */
     public void set_IntervalIsSeconds(boolean b_IntervalIsSeconds) {
         this.b_IntervalIsSeconds = b_IntervalIsSeconds;
+    }
+
+    /**
+     * @return the i_nodeId
+     */
+    public int get_NodeId() {
+        return i_nodeId;
+    }
+
+    /**
+     * @param i_nodeId the i_nodeId to set
+     */
+    public void set_NodeId(int i_nodeId) {
+        this.i_nodeId = i_nodeId;
     }
 }
