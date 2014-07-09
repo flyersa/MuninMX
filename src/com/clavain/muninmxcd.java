@@ -173,23 +173,6 @@ public class muninmxcd {
                 logger.info("* " + mn.getHostname() + " queued for pluginfetch");
             }
             
-            /*
-            ExecutorService executor = Executors.newFixedThreadPool(250);
-            
-            for (MuninNode it_mn : v_munin_nodes) {  
-                    executor.execute(new PluginUpdater(it_mn));
-            }   
-            logger.info("Shuting down Updater Executor");
-            executor.shutdown();
-            
-            while (!executor.isTerminated()) {
-                Thread.sleep(100);
-            }
-            logger.info("Debug Mode. Exiting");
-            System.exit(0);      
-            /*
-             * 
-             */
             // launching quartz scheduler
             logger.info("Launching Scheduler");
             SchedulerFactory sf = new StdSchedulerFactory("quartz.properties");

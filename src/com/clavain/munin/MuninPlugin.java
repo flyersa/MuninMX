@@ -32,6 +32,7 @@ public class MuninPlugin {
     private long   l_lastFrontendQuery;
     private transient long   l_lastMuninQuery;
     private transient Socket csMuninSocket;
+    private transient boolean b_IntervalIsSeconds = false;
     
     private ArrayList<MuninGraph> v_graphs = new ArrayList<MuninGraph>();;
 
@@ -171,6 +172,11 @@ public class MuninPlugin {
                     {
                         MuninGraph l_mg = (MuninGraph) it.next();
                         l_mg.setQueryInterval(p_queryInterval);
+                        // required for customer plugin intervals
+                        if(IntervalIsSeconds() != false)
+                        {
+                           l_mg.setIntervalIsSeconds(true); 
+                        }
                         if(l_mg.getGraphName().equals(l_graphName))
                         {                  
                             if(l_value.trim().length() < 1)
@@ -244,5 +250,19 @@ public class MuninPlugin {
      */
     public void setStr_PluginCategory(String str_PluginCategory) {
         this.str_PluginCategory = str_PluginCategory;
+    }
+
+    /**
+     * @return the b_IntervalIsSeconds
+     */
+    public boolean IntervalIsSeconds() {
+        return b_IntervalIsSeconds;
+    }
+
+    /**
+     * @param b_IntervalIsSeconds the b_IntervalIsSeconds to set
+     */
+    public void set_IntervalIsSeconds(boolean b_IntervalIsSeconds) {
+        this.b_IntervalIsSeconds = b_IntervalIsSeconds;
     }
 }

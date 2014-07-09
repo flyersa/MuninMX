@@ -32,7 +32,7 @@ public class MuninGraph {
     private int i_lastGraphFetch    =   0;
     private int i_lastQueued    = 0;
     private int queryInterval = 0;
-
+    private transient boolean b_IntervalIsSeconds = false;
 
     public void setLastQueued(int p_time)
     {
@@ -202,7 +202,11 @@ public class MuninGraph {
     }
 
     public int getQueryInterval() {
-        int retval = queryInterval * 60;
+        int retval = queryInterval;
+        if(this.b_IntervalIsSeconds == false)
+        {
+            retval = queryInterval * 60;
+        }
         return retval;
     }
 
@@ -218,6 +222,10 @@ public class MuninGraph {
      */
     public void setNegative(boolean b_isNegative) {
         this.b_isNegative = b_isNegative;
+    }
+
+    void setIntervalIsSeconds(boolean b) {
+       b_IntervalIsSeconds = b;
     }
 
 }
