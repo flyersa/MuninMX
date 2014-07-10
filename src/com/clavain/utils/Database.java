@@ -19,6 +19,7 @@ import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import static com.clavain.muninmxcd.p;
 import static com.clavain.utils.Generic.getMuninNode;
+import static com.clavain.utils.Quartz.scheduleCustomIntervalJob;
 import java.util.Iterator;
 /**
  *
@@ -160,6 +161,24 @@ public class Database {
         }
     }
     
+    public static void dbScheduleAllCustomJobs()
+    {
+        try 
+        {
+            Connection conn = connectToDatabase(p);
+            java.sql.Statement stmt = conn.createStatement();  
+            ResultSet rs = stmt.executeQuery("SELECT * FROM plugins_custom_interval");
+            while(rs.next())
+            {
+                scheduleCustomIntervalJob(rs.getInt("id"));
+            }
+        } catch (Exception ex)
+        {
+            logger.error("Startup Schedule for Custom Jobs failed." + ex.getLocalizedMessage());
+            ex.printStackTrace();
+        }
+    }
+    
     public static MuninPlugin getMuninPluginForCustomJobFromDb(Integer p_id)
     {
         MuninPlugin retval = new MuninPlugin();
@@ -205,7 +224,7 @@ public class Database {
                             MuninGraph old_mg = (MuninGraph) git.next();
                             MuninGraph new_mg = new MuninGraph();
                             new_mg.setGraphDraw(old_mg.getGraphDraw());
-                            new_mg.setGraphInfo(old_mg.getGraphDraw());
+                            new_mg.setGraphInfo(old_mg.getGraphInfo());
                             new_mg.setGraphLabel(old_mg.getGraphLabel());
                             new_mg.setGraphName(old_mg.getGraphName());
                             new_mg.setGraphType(old_mg.getGraphType());

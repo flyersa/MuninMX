@@ -133,6 +133,7 @@ public class MuninPlugin {
      */
     public void updateAllGraps(String p_strHostname, int p_iPort, Socket p_socket, int p_queryInterval)
     {
+
         try
         {
             setCsMuninSocket(p_socket);
@@ -212,13 +213,18 @@ public class MuninPlugin {
                     }
                 }
             }
-            //os.close();
-            //in.close();
-            //csMuninSocket.close();
-            //csMuninSocket = null;
+            if(customId != null)
+            {
+                os.close();
+                in.close();
+                csMuninSocket.close();
+                
+                csMuninSocket = null;
+            }
 
         } catch (Exception ex)
         {
+            //this.getCsMuninSocket().close();
             //try { csMuninSocket.close(); } catch (Exception e) {};
             logger.error(p_strHostname + " Unable to connect/process: " + ex.getMessage());
             ex.printStackTrace();
