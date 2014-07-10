@@ -82,7 +82,7 @@ public class JettyHandler extends AbstractHandler
                 // custom interval plugins
                 else if(l_lTargets.get(1).equals("customintervals"))
                 {
-                    writeJson(com.clavain.muninmxcd.v_cinterval_plugins);
+                    writeJsonWithTransient(com.clavain.muninmxcd.v_cinterval_plugins);
                 }
             }
             // query a node
@@ -122,6 +122,11 @@ public class JettyHandler extends AbstractHandler
             {                    
                 writeJson(getScheduledJobs());
             }
+            // get joblist
+            else if (l_lTargets.get(0).equals("customjoblist"))
+            {                    
+                writeJsonWithTransient(getScheduledCustomJobs());
+            }            
             // add a new job
             else if(l_lTargets.get(0).equals("queuejob"))
             {
@@ -147,6 +152,31 @@ public class JettyHandler extends AbstractHandler
                        }
                    }   
             }
+            // add a new customjob
+            else if(l_lTargets.get(0).equals("queuecustomjob"))
+            {
+                if(l_lTargets.size() < 3)
+                {
+                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                     writer.println("no custom id and/or user id specified. syntax: queuecustomjob/$customid/$userid");  
+                   } 
+                   else
+                   {   
+                       Integer customId = Integer.parseInt(l_lTargets.get(1).toString());
+                       Integer userId = Integer.parseInt(l_lTargets.get(2).toString());
+                       unscheduleCustomJob(customId.toString(),userId.toString());
+                       //com.clavain.muninmxcd.v_munin_nodes.add(l_mn);
+                       if(scheduleCustomIntervalJob(customId))
+                       {
+                           writeJson(true);
+                       }
+                       else
+                       {
+                            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                            writer.println("queue error");                             
+                       }
+                   }   
+            }            
             // delete a job
             else if(l_lTargets.get(0).equals("deletejob"))
             {     
@@ -171,7 +201,29 @@ public class JettyHandler extends AbstractHandler
                         
                     }
                 }
-            }       
+            }  
+            // delete a job
+            else if(l_lTargets.get(0).equals("deletecustomjob"))
+            {     
+                if(l_lTargets.size() < 3)
+                {
+                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                     writer.println("no custom id and user_id specified");               
+                } 
+                else
+                {
+                    boolean ucRet = unscheduleCustomJob(l_lTargets.get(1).toString(), l_lTargets.get(2).toString());
+                    if(!ucRet)
+                    {
+                       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                       writer.println("unable to delete custom job, maybe its already deleted");                                
+                    }
+                    else
+                    {
+                        writeJson(ucRet);        
+                    }
+                }
+            }               
         }
         else
         {
@@ -257,6 +309,12 @@ public class JettyHandler extends AbstractHandler
         gson = null;
     }
 
+        public static void writeJsonWithTransient(Object p_obj)
+    {
+        Gson gson = new GsonBuilder().create();
+        writer.println(gson.toJson(p_obj));   
+        gson = null;
+    }
     
     /** 
      * will start a collection thread if not running, return all graphs for plugin

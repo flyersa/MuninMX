@@ -6,6 +6,7 @@
  */
 package com.clavain.utils;
 
+import com.clavain.jobs.CustomJob;
 import com.clavain.jobs.MuninJob;
 import com.clavain.json.ScheduledJob;
 import com.clavain.munin.MuninNode;
@@ -26,6 +27,12 @@ import static org.quartz.JobBuilder.*;
 import org.quartz.JobKey;
 import static org.quartz.TriggerBuilder.newTrigger;
 import static org.quartz.impl.matchers.GroupMatcher.groupEquals;
+import static com.clavain.utils.Database.getMuninPluginForCustomJobFromDb;
+import static com.clavain.utils.Generic.getStampFromTimeAndZone;
+import static com.clavain.utils.Generic.getMuninPluginForCustomJob;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
+
 /**
  *
  * @author enricokern
@@ -38,7 +45,7 @@ public class Quartz {
         String uid = mn.getUser_id().toString();
         Trigger trigger = newTrigger().withIdentity("trigger", uid + mn.getNode_id() + System.currentTimeMillis()).startNow().withSchedule(simpleSchedule().withIntervalInMinutes(mn.getQueryInterval()) .repeatForever().withMisfireHandlingInstructionFireNow()).build(); 
         JobDetail job = newJob(MuninJob.class).withIdentity(mn.getNode_id().toString(), mn.getUser_id().toString()).usingJobData("nodeId", mn.getNode_id()).build();
-        
+
         try
         {
             sched.scheduleJob(job, trigger);
@@ -103,11 +110,82 @@ public class Quartz {
         return l_retVal;
     }    
     
+   public static boolean isCustomJobScheduled(int p_cid)
+    {
+        boolean retval = false;
+        String match = p_cid+"";
+        for(ScheduledJob sj : getScheduledCustomJobs())
+        {
+            if(sj.getJobName().equals(match))
+            {
+                return true;
+            }
+        }
+        
+        return retval;
+    }    
+    
+    
+    public static boolean unscheduleCustomJob(String p_cid, String p_uid)
+    {
+        boolean l_retVal = false;
+        JobKey jk = new JobKey(p_cid,p_uid);
+        try {
+            com.clavain.muninmxcd.sched_custom.deleteJob(jk);
+            com.clavain.muninmxcd.v_cinterval_plugins.remove(getMuninPluginForCustomJob(Integer.parseInt(p_cid)));
+            l_retVal = true;
+        } catch (SchedulerException ex) {
+            logger.error("Error in unscheduleCustomCheck: " + ex.getLocalizedMessage());
+        }
+        
+        return l_retVal;
+    }   
+    
     // schedule a custom interval check
     public static boolean scheduleCustomIntervalJob(Integer p_cid)
     {
         boolean retval = false;
-        
+        MuninPlugin l_mp = getMuninPluginForCustomJobFromDb(p_cid);
+        if(l_mp != null)
+        {
+           String uid = l_mp.getUser_id().toString();
+           String cinterval = "";
+           // build trigger
+           Trigger trigger;
+           if(l_mp.getFrom_time().equals("0"))
+           {
+               trigger = newTrigger().withIdentity("trigger", uid + l_mp.getCustomId() + System.currentTimeMillis()).startNow().withSchedule(simpleSchedule().withIntervalInSeconds(l_mp.getQuery_interval()).repeatForever().withMisfireHandlingInstructionFireNow()).build(); 
+               cinterval = " every " + l_mp.getQuery_interval() + " seconds";
+           }
+           else
+           {
+               // thats fucking wrong... we need todo that with cron somehow
+               long a = getStampFromTimeAndZone(l_mp.getFrom_time(),l_mp.getTimezone());
+               long b = getStampFromTimeAndZone(l_mp.getTo_time(),l_mp.getTimezone());
+              
+               Date startDate = new Date(a*1000L);
+               Date endDate = new Date(b*1000L);
+               long cur = (System.currentTimeMillis() / 1000L);
+               // this shit is almost correct, convert to cron trigger with every $ seconds between $a and $b (hour)
+               trigger = newTrigger().withIdentity("trigger", uid + l_mp.getCustomId() + System.currentTimeMillis()).startAt(startDate).withSchedule(simpleSchedule().withIntervalInSeconds(l_mp.getQuery_interval()).repeatForever().withMisfireHandlingInstructionFireNow()).endAt(endDate).build(); 
+               cinterval = " every " + l_mp.getQuery_interval() + " seconds from " + startDate + " to " + endDate + " (repeating every day)";
+           }
+           //Trigger trigger = newTrigger().withIdentity("trigger", uid + l_mp.get_NodeId() + System.currentTimeMillis()).startNow().withSchedule(simpleSchedule().withIntervalInMinutes(l_mp.get .repeatForever().withMisfireHandlingInstructionFireNow()).build(); 
+           JobDetail job = newJob(CustomJob.class).withIdentity(l_mp.getCustomId() + "", l_mp.getUser_id().toString()).usingJobData("customId", l_mp.getCustomId()).build();
+
+           try
+           {
+               com.clavain.muninmxcd.sched_custom.scheduleJob(job, trigger);
+               logger.info("Scheduled CustomJob for custom interval: " + l_mp.getCustomId() + " with interval " + cinterval);
+               retval = true;
+               com.clavain.muninmxcd.v_cinterval_plugins.add(l_mp);
+           } catch (Exception ex)
+           {
+               logger.error("Unable to Schedule Job for custom interval:" + l_mp.getCustomId() + " with interval " + cinterval);
+               logger.error(ex);
+           }           
+
+        }
         return retval;
     }
     
@@ -124,6 +202,34 @@ public class Quartz {
 
                      //get job's trigger
                      List<Trigger> triggers = (List<Trigger>) com.clavain.muninmxcd.sched.getTriggersOfJob(jobKey);
+                     Date nextFireTime = triggers.get(0).getNextFireTime(); 
+                     ScheduledJob sj = new ScheduledJob();
+                     sj.setJobName(jobName);
+                     sj.setGroupName(jobGroup);
+                     sj.setNextFireTime(nextFireTime.toString());
+                     retval.add(sj);
+                     }
+
+               }
+        } catch (SchedulerException ex) {
+            logger.error("Error in getScheduledJobs(): " + ex.getLocalizedMessage());
+        }
+        return retval;
+    } 
+    
+    public static ArrayList<ScheduledJob> getScheduledCustomJobs()
+    {
+        ArrayList<ScheduledJob> retval = new ArrayList<>();
+        try {
+            for (String groupName : com.clavain.muninmxcd.sched_custom.getJobGroupNames()) {
+
+                for (JobKey jobKey : com.clavain.muninmxcd.sched_custom.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
+
+                     String jobName = jobKey.getName();
+                     String jobGroup = jobKey.getGroup();
+
+                     //get job's trigger
+                     List<Trigger> triggers = (List<Trigger>) com.clavain.muninmxcd.sched_custom.getTriggersOfJob(jobKey);
                      Date nextFireTime = triggers.get(0).getNextFireTime(); 
                      ScheduledJob sj = new ScheduledJob();
                      sj.setJobName(jobName);

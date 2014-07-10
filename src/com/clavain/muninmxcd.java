@@ -185,7 +185,7 @@ public class muninmxcd {
  
             // launching quartz scheduler for custom interval
             logger.info("Launching Custom Interval Scheduler");
-            SchedulerFactory sfc = new StdSchedulerFactory("quartz.properties");
+            SchedulerFactory sfc = new StdSchedulerFactory("customquartz.properties");
             sched_custom = sfc.getScheduler();   
             sched_custom.start();
             

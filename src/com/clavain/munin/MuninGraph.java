@@ -224,7 +224,7 @@ public class MuninGraph {
         this.b_isNegative = b_isNegative;
     }
 
-    void setIntervalIsSeconds(boolean b) {
+    public void setIntervalIsSeconds(boolean b) {
        b_IntervalIsSeconds = b;
     }
 

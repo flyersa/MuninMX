@@ -529,7 +529,7 @@ public class MuninNode
     /**
      * fill insertion queue with current graph values for each plugin
      */
-    private void queuePluginFetch(ArrayList<MuninGraph> p_almg, String p_strPluginName)
+    public void queuePluginFetch(ArrayList<MuninGraph> p_almg, String p_strPluginName)
     {
         Iterator<MuninGraph> it = p_almg.iterator();
         while(it.hasNext())

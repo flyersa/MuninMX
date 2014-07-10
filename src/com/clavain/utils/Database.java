@@ -6,6 +6,7 @@
  */
 package com.clavain.utils;
 
+import com.clavain.munin.MuninGraph;
 import com.clavain.munin.MuninNode;
 import com.clavain.munin.MuninPlugin;
 import static com.clavain.muninmxcd.logger;
@@ -17,6 +18,8 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import static com.clavain.muninmxcd.p;
+import static com.clavain.utils.Generic.getMuninNode;
+import java.util.Iterator;
 /**
  *
  * @author enricokern
@@ -155,6 +158,75 @@ public class Database {
         {
              logger.error("Error in dbDeleteMissingPlugins: " + ex.getLocalizedMessage());
         }
+    }
+    
+    public static MuninPlugin getMuninPluginForCustomJobFromDb(Integer p_id)
+    {
+        MuninPlugin retval = new MuninPlugin();
+        try
+        {
+            Connection conn = connectToDatabase(p);
+            java.sql.Statement stmt = conn.createStatement();  
+            ResultSet rs = stmt.executeQuery("SELECT plugins_custom_interval.*,plugins_custom_interval.query_interval AS second_interval , nodes.*, nodes.id AS nodeid, nodes.query_interval AS node_query_interval FROM  `plugins_custom_interval` LEFT JOIN nodes ON plugins_custom_interval.node_id = nodes.id WHERE plugins_custom_interval.id = "+p_id); 
+            while(rs.next())
+            {
+                MuninNode l_node = getMuninNode(rs.getInt("nodeid"));
+                if(l_node == null)
+                {
+                    logger.error("getMuninPluginFromCustomInterval: cannot find MuninNode with id " + rs.getInt("nodeid") + " for custom interval: " + p_id);
+                    return null;
+                }
+                retval.set_IntervalIsSeconds(true);
+                retval.set_NodeId(l_node.getNode_id());
+                retval.setTo_time(rs.getString("to_time"));
+                retval.setFrom_time(rs.getString("from_time"));
+                retval.setTimezone(rs.getString("timezone"));
+                String str_PluginName = rs.getString("pluginname").trim();
+                retval.setUser_id(l_node.getUser_id());
+                retval.setQuery_interval(rs.getInt("second_interval"));
+                retval.setCustomId(p_id);
+                // find plugin for custom interval and copy graphs and plugin informations
+                Iterator it = l_node.getPluginList().iterator();
+                while(it.hasNext())
+                {
+                    MuninPlugin l_mp = (MuninPlugin) it.next();
+                    if(l_mp.getPluginName().equals(str_PluginName))
+                    {
+                        retval.setPluginInfo(l_mp.getPluginInfo());
+                        retval.setPluginLabel((l_mp.getPluginLabel()));
+                        retval.setPluginName(l_mp.getPluginName());
+                        retval.setPluginTitle(l_mp.getPluginTitle());
+                        retval.setStr_PluginCategory(l_mp.getStr_PluginCategory());
+                        
+                        // copy graph base informations
+                        Iterator git = l_mp.getGraphs().iterator();
+                        while(git.hasNext())
+                        {
+                            MuninGraph old_mg = (MuninGraph) git.next();
+                            MuninGraph new_mg = new MuninGraph();
+                            new_mg.setGraphDraw(old_mg.getGraphDraw());
+                            new_mg.setGraphInfo(old_mg.getGraphDraw());
+                            new_mg.setGraphLabel(old_mg.getGraphLabel());
+                            new_mg.setGraphName(old_mg.getGraphName());
+                            new_mg.setGraphType(old_mg.getGraphType());
+                            new_mg.setNegative(old_mg.isNegative());
+                            new_mg.setQueryInterval(rs.getInt("second_interval"));
+                            new_mg.setIntervalIsSeconds(true);
+                            retval.addGraph(new_mg);
+                            logger.info("getMuninPluginFromCustomInterval: added graph " + new_mg.getGraphName() + " for custom interval: " + p_id);
+                        }
+                    }
+                }
+               return retval;
+            }
+            
+        } catch (Exception ex)
+        {
+            logger.error("Error in getMuninPluginFromCustomInterval: " + ex.getLocalizedMessage());
+            ex.printStackTrace();
+            retval = null;
+        }
+        return retval;
     }
     
     private static int rowCount(ResultSet rs) throws SQLException

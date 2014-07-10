@@ -34,6 +34,12 @@ public class MuninPlugin {
     private transient Socket csMuninSocket;
     private transient boolean b_IntervalIsSeconds = false;
     private transient int i_nodeId;
+    private transient String from_time;
+    private transient String to_time;
+    private transient String timezone;
+    private transient Integer customId;
+    private transient Integer query_interval;
+    private transient Integer user_id;
     private ArrayList<MuninGraph> v_graphs = new ArrayList<MuninGraph>();;
 
     
@@ -88,14 +94,14 @@ public class MuninPlugin {
      * @return the v_graphs
      */
     public ArrayList<MuninGraph> getGraphs() {
-        return v_graphs;
+        return getV_graphs();
     }
 
     /**
      * @param v_graphs the v_graphs to set
      */
     public void setGraphs(ArrayList<MuninGraph> v_graphs) {
-        this.v_graphs = v_graphs;
+        this.setV_graphs(v_graphs);
     }
 
     /**
@@ -129,33 +135,33 @@ public class MuninPlugin {
     {
         try
         {
-            csMuninSocket = p_socket;
+            setCsMuninSocket(p_socket);
             // connection available?
-            if(csMuninSocket != null)
+            if(getCsMuninSocket() != null)
             {
-                if(!csMuninSocket.isConnected() || csMuninSocket.isClosed())
+                if(!csMuninSocket.isConnected() || getCsMuninSocket().isClosed())
                 {
-                    csMuninSocket = null;
-                    csMuninSocket = new Socket();
-                    csMuninSocket.setSoTimeout(5000);
-                    csMuninSocket.setKeepAlive(false);
-                    csMuninSocket.setSoLinger(true, 0);
-                    csMuninSocket.setReuseAddress(false);                     
-                    csMuninSocket.connect(new InetSocketAddress(p_strHostname, p_iPort),5000);
+                    setCsMuninSocket(null);
+                    setCsMuninSocket(new Socket());
+                    getCsMuninSocket().setSoTimeout(5000);
+                    getCsMuninSocket().setKeepAlive(false);
+                    getCsMuninSocket().setSoLinger(true, 0);
+                    getCsMuninSocket().setReuseAddress(false);                     
+                    getCsMuninSocket().connect(new InetSocketAddress(p_strHostname, p_iPort),5000);
                     logger.info("Reconnecting to " + p_strHostname);
                 }
             }
             else
             {
-                    csMuninSocket = new Socket();
-                    csMuninSocket.setSoTimeout(5000);
-                    csMuninSocket.setKeepAlive(false);
-                    csMuninSocket.setSoLinger(true, 0);
-                    csMuninSocket.setReuseAddress(false);                      
-                    csMuninSocket.connect(new InetSocketAddress(p_strHostname, p_iPort),5000);
+                    setCsMuninSocket(new Socket());
+                    getCsMuninSocket().setSoTimeout(5000);
+                    getCsMuninSocket().setKeepAlive(false);
+                    getCsMuninSocket().setSoLinger(true, 0);
+                    getCsMuninSocket().setReuseAddress(false);                      
+                    getCsMuninSocket().connect(new InetSocketAddress(p_strHostname, p_iPort),5000);
             }
-            PrintStream os = new PrintStream( csMuninSocket.getOutputStream() );
-            BufferedReader in = new BufferedReader(new InputStreamReader( csMuninSocket.getInputStream()) );
+            PrintStream os = new PrintStream( getCsMuninSocket().getOutputStream() );
+            BufferedReader in = new BufferedReader(new InputStreamReader( getCsMuninSocket().getInputStream()) );
             os.println("fetch " + this.getPluginName());
             String line;
             while((line = in.readLine()) != null) {
@@ -172,7 +178,7 @@ public class MuninPlugin {
                     {
                         logger.info(p_strHostname + " - " + l_graphName + " - " + l_value);
                     }
-                    Iterator it = this.v_graphs.iterator();
+                    Iterator it = this.getV_graphs().iterator();
                     while (it.hasNext())
                     {
                         MuninGraph l_mg = (MuninGraph) it.next();
@@ -222,7 +228,7 @@ public class MuninPlugin {
     
     public ArrayList<MuninGraph> returnAllGraphs()
     {
-        return v_graphs;   
+        return getV_graphs();   
     }
 
     void setPluginCategory(String p_strCategory) {
@@ -283,5 +289,117 @@ public class MuninPlugin {
      */
     public void set_NodeId(int i_nodeId) {
         this.i_nodeId = i_nodeId;
+    }
+
+    /**
+     * @return the to_time
+     */
+    public String getTo_time() {
+        return to_time;
+    }
+
+    /**
+     * @param to_time the to_time to set
+     */
+    public void setTo_time(String to_time) {
+        this.to_time = to_time;
+    }
+
+    /**
+     * @return the timezone
+     */
+    public String getTimezone() {
+        return timezone;
+    }
+
+    /**
+     * @param timezone the timezone to set
+     */
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
+    }
+
+    /**
+     * @return the v_graphs
+     */
+    public ArrayList<MuninGraph> getV_graphs() {
+        return v_graphs;
+    }
+
+    /**
+     * @param v_graphs the v_graphs to set
+     */
+    public void setV_graphs(ArrayList<MuninGraph> v_graphs) {
+        this.v_graphs = v_graphs;
+    }
+
+    /**
+     * @return the from_time
+     */
+    public String getFrom_time() {
+        return from_time;
+    }
+
+    /**
+     * @param from_time the from_time to set
+     */
+    public void setFrom_time(String from_time) {
+        this.from_time = from_time;
+    }
+
+    /**
+     * @return the customId
+     */
+    public Integer getCustomId() {
+        return customId;
+    }
+
+    /**
+     * @param customId the customId to set
+     */
+    public void setCustomId(Integer customId) {
+        this.customId = customId;
+    }
+
+    /**
+     * @return the user_id
+     */
+    public Integer getUser_id() {
+        return user_id;
+    }
+
+    /**
+     * @param user_id the user_id to set
+     */
+    public void setUser_id(Integer user_id) {
+        this.user_id = user_id;
+    }
+
+    /**
+     * @return the query_interval
+     */
+    public Integer getQuery_interval() {
+        return query_interval;
+    }
+
+    /**
+     * @param query_interval the query_interval to set
+     */
+    public void setQuery_interval(Integer query_interval) {
+        this.query_interval = query_interval;
+    }
+
+    /**
+     * @return the csMuninSocket
+     */
+    public Socket getCsMuninSocket() {
+        return csMuninSocket;
+    }
+
+    /**
+     * @param csMuninSocket the csMuninSocket to set
+     */
+    public void setCsMuninSocket(Socket csMuninSocket) {
+        this.csMuninSocket = csMuninSocket;
     }
 }
