@@ -161,7 +161,7 @@ public class Quartz {
            else
            {
                 // standard repeat forever trigger
-                if(l_mp.getFrom_time().equals("0"))
+                if(l_mp.getFrom_time() == 0)
                 {
                     trigger = newTrigger().withIdentity("trigger", uid + l_mp.getCustomId() + System.currentTimeMillis()).startNow().withSchedule(simpleSchedule().withIntervalInSeconds(l_mp.getQuery_interval()).repeatForever().withMisfireHandlingInstructionFireNow()).build(); 
                     cinterval = " every " + l_mp.getQuery_interval() + " seconds";
