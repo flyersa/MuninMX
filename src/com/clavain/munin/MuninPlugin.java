@@ -34,8 +34,8 @@ public class MuninPlugin {
     private transient Socket csMuninSocket;
     private transient boolean b_IntervalIsSeconds = false;
     private transient int i_nodeId;
-    private transient String from_time;
-    private transient String to_time;
+    private transient Integer from_time;
+    private transient Integer to_time;
     private transient String timezone;
     private transient Integer customId;
     private transient Integer query_interval;
@@ -301,14 +301,14 @@ public class MuninPlugin {
     /**
      * @return the to_time
      */
-    public String getTo_time() {
+    public Integer getTo_time() {
         return to_time;
     }
 
     /**
      * @param to_time the to_time to set
      */
-    public void setTo_time(String to_time) {
+    public void setTo_time(Integer to_time) {
         this.to_time = to_time;
     }
 
@@ -343,14 +343,14 @@ public class MuninPlugin {
     /**
      * @return the from_time
      */
-    public String getFrom_time() {
+    public Integer getFrom_time() {
         return from_time;
     }
 
     /**
      * @param from_time the from_time to set
      */
-    public void setFrom_time(String from_time) {
+    public void setFrom_time(Integer from_time) {
         this.from_time = from_time;
     }
 

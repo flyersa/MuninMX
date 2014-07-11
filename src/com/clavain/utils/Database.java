@@ -197,8 +197,8 @@ public class Database {
                 }
                 retval.set_IntervalIsSeconds(true);
                 retval.set_NodeId(l_node.getNode_id());
-                retval.setTo_time(rs.getString("to_time"));
-                retval.setFrom_time(rs.getString("from_time"));
+                retval.setTo_time(rs.getInt("to_time"));
+                retval.setFrom_time(rs.getInt("from_time"));
                 retval.setTimezone(rs.getString("timezone"));
                 String str_PluginName = rs.getString("pluginname").trim();
                 retval.setUser_id(l_node.getUser_id());

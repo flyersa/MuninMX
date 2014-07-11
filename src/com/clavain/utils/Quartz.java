@@ -169,9 +169,8 @@ public class Quartz {
                 // daterange trigger, ignore missfire
                 else
                 {
-                    // thats fucking wrong... we need todo that with cron somehow
-                    long a = getStampFromTimeAndZone(l_mp.getFrom_time(),l_mp.getTimezone());
-                    long b = getStampFromTimeAndZone(l_mp.getTo_time(),l_mp.getTimezone());
+                    long a = l_mp.getFrom_time();
+                    long b = l_mp.getTo_time();
 
                     Date startDate = new Date(a*1000L);
                     Date endDate = new Date(b*1000L);
