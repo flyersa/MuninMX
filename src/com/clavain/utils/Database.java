@@ -203,6 +203,7 @@ public class Database {
                 String str_PluginName = rs.getString("pluginname").trim();
                 retval.setUser_id(l_node.getUser_id());
                 retval.setQuery_interval(rs.getInt("second_interval"));
+                retval.setCrontab(rs.getString("crontab"));
                 retval.setCustomId(p_id);
                 // find plugin for custom interval and copy graphs and plugin informations
                 Iterator it = l_node.getPluginList().iterator();

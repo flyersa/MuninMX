@@ -40,6 +40,7 @@ public class MuninPlugin {
     private transient Integer customId;
     private transient Integer query_interval;
     private transient Integer user_id;
+    private transient String crontab = "false";
     private ArrayList<MuninGraph> v_graphs = new ArrayList<MuninGraph>();;
 
     
@@ -407,5 +408,19 @@ public class MuninPlugin {
      */
     public void setCsMuninSocket(Socket csMuninSocket) {
         this.csMuninSocket = csMuninSocket;
+    }
+
+    /**
+     * @return the crontab
+     */
+    public String getCrontab() {
+        return crontab;
+    }
+
+    /**
+     * @param crontab the crontab to set
+     */
+    public void setCrontab(String crontab) {
+        this.crontab = crontab;
     }
 }

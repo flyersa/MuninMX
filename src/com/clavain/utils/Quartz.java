@@ -32,6 +32,7 @@ import static com.clavain.utils.Generic.getStampFromTimeAndZone;
 import static com.clavain.utils.Generic.getMuninPluginForCustomJob;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
+import org.quartz.CronScheduleBuilder;
 
 /**
  *
@@ -152,23 +153,32 @@ public class Quartz {
            String cinterval = "";
            // build trigger
            Trigger trigger;
-           if(l_mp.getFrom_time().equals("0"))
+           // crontab trigger
+           if(!l_mp.getCrontab().equals("false"))
            {
-               trigger = newTrigger().withIdentity("trigger", uid + l_mp.getCustomId() + System.currentTimeMillis()).startNow().withSchedule(simpleSchedule().withIntervalInSeconds(l_mp.getQuery_interval()).repeatForever().withMisfireHandlingInstructionFireNow()).build(); 
-               cinterval = " every " + l_mp.getQuery_interval() + " seconds";
+             trigger = newTrigger().withIdentity("trigger", uid + l_mp.getCustomId() + System.currentTimeMillis()).withSchedule(CronScheduleBuilder.cronSchedule(l_mp.getCrontab()).withMisfireHandlingInstructionFireAndProceed().inTimeZone(TimeZone.getTimeZone(l_mp.getTimezone()))).build();        
            }
            else
            {
-               // thats fucking wrong... we need todo that with cron somehow
-               long a = getStampFromTimeAndZone(l_mp.getFrom_time(),l_mp.getTimezone());
-               long b = getStampFromTimeAndZone(l_mp.getTo_time(),l_mp.getTimezone());
-              
-               Date startDate = new Date(a*1000L);
-               Date endDate = new Date(b*1000L);
-               long cur = (System.currentTimeMillis() / 1000L);
-               // this shit is almost correct, convert to cron trigger with every $ seconds between $a and $b (hour)
-               trigger = newTrigger().withIdentity("trigger", uid + l_mp.getCustomId() + System.currentTimeMillis()).startAt(startDate).withSchedule(simpleSchedule().withIntervalInSeconds(l_mp.getQuery_interval()).repeatForever().withMisfireHandlingInstructionFireNow()).endAt(endDate).build(); 
-               cinterval = " every " + l_mp.getQuery_interval() + " seconds from " + startDate + " to " + endDate + " (repeating every day)";
+                // standard repeat forever trigger
+                if(l_mp.getFrom_time().equals("0"))
+                {
+                    trigger = newTrigger().withIdentity("trigger", uid + l_mp.getCustomId() + System.currentTimeMillis()).startNow().withSchedule(simpleSchedule().withIntervalInSeconds(l_mp.getQuery_interval()).repeatForever().withMisfireHandlingInstructionFireNow()).build(); 
+                    cinterval = " every " + l_mp.getQuery_interval() + " seconds";
+                }
+                // daterange trigger, ignore missfire
+                else
+                {
+                    // thats fucking wrong... we need todo that with cron somehow
+                    long a = getStampFromTimeAndZone(l_mp.getFrom_time(),l_mp.getTimezone());
+                    long b = getStampFromTimeAndZone(l_mp.getTo_time(),l_mp.getTimezone());
+
+                    Date startDate = new Date(a*1000L);
+                    Date endDate = new Date(b*1000L);
+                    long cur = (System.currentTimeMillis() / 1000L);
+                    trigger = newTrigger().withIdentity("trigger", uid + l_mp.getCustomId() + System.currentTimeMillis()).startAt(startDate).withSchedule(simpleSchedule().withIntervalInSeconds(l_mp.getQuery_interval()).repeatForever().withMisfireHandlingInstructionIgnoreMisfires()).endAt(endDate).build(); 
+                    cinterval = " every " + l_mp.getQuery_interval() + " seconds from " + startDate + " to " + endDate;
+                }
            }
            //Trigger trigger = newTrigger().withIdentity("trigger", uid + l_mp.get_NodeId() + System.currentTimeMillis()).startNow().withSchedule(simpleSchedule().withIntervalInMinutes(l_mp.get .repeatForever().withMisfireHandlingInstructionFireNow()).build(); 
            JobDetail job = newJob(CustomJob.class).withIdentity(l_mp.getCustomId() + "", l_mp.getUser_id().toString()).usingJobData("customId", l_mp.getCustomId()).build();
