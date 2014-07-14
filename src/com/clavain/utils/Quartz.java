@@ -156,7 +156,23 @@ public class Quartz {
            // crontab trigger
            if(!l_mp.getCrontab().equals("false"))
            {
-             trigger = newTrigger().withIdentity("trigger", uid + l_mp.getCustomId() + System.currentTimeMillis()).withSchedule(CronScheduleBuilder.cronSchedule(l_mp.getCrontab()).withMisfireHandlingInstructionFireAndProceed().inTimeZone(TimeZone.getTimeZone(l_mp.getTimezone()))).build();        
+             // fixed start/end ?
+             if(l_mp.getFrom_time() == 0)
+             {
+                trigger = newTrigger().withIdentity("trigger", uid + l_mp.getCustomId() + System.currentTimeMillis()).withSchedule(CronScheduleBuilder.cronSchedule(l_mp.getCrontab()).withMisfireHandlingInstructionFireAndProceed().inTimeZone(TimeZone.getTimeZone(l_mp.getTimezone()))).build();        
+                cinterval = " every " + l_mp.getQuery_interval() + " seconds with crontab: " + l_mp.getCrontab();
+             }
+             else
+             {
+                long a = l_mp.getFrom_time();
+                long b = l_mp.getTo_time();
+
+                Date startDate = new Date(a*1000L);
+                Date endDate = new Date(b*1000L);  
+                trigger = newTrigger().withIdentity("trigger", uid + l_mp.getCustomId() + System.currentTimeMillis()).startAt(startDate).withSchedule(CronScheduleBuilder.cronSchedule(l_mp.getCrontab()).withMisfireHandlingInstructionFireAndProceed().inTimeZone(TimeZone.getTimeZone(l_mp.getTimezone()))).endAt(endDate).build();        
+                cinterval = " every " + l_mp.getQuery_interval() + " seconds with crontab: " + l_mp.getCrontab() + " from " + startDate + " to " + endDate;
+               
+             }
            }
            else
            {
@@ -191,7 +207,7 @@ public class Quartz {
            } catch (Exception ex)
            {
                logger.error("Unable to Schedule Job for custom interval:" + l_mp.getCustomId() + " with interval " + cinterval);
-               logger.error(ex);
+               logger.error(ex.getLocalizedMessage());
            }           
 
         }
@@ -210,6 +226,7 @@ public class Quartz {
                      String jobGroup = jobKey.getGroup();
 
                      //get job's trigger
+
                      List<Trigger> triggers = (List<Trigger>) com.clavain.muninmxcd.sched.getTriggersOfJob(jobKey);
                      Date nextFireTime = triggers.get(0).getNextFireTime(); 
                      ScheduledJob sj = new ScheduledJob();
