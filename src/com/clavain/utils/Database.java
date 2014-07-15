@@ -80,17 +80,24 @@ public class Database {
     
     public static void dbUpdateAllPluginsForNode(MuninNode p_mn)
     {
-        logger.info("[Job: " + p_mn.getHostname() + "] Updating Database");
-        // update graphs in database too
-        for(MuninPlugin it_pl : p_mn.getPluginList()) {
-            if(it_pl.getGraphs().size() > 0)
-            {
-                dbUpdatePluginForNode(p_mn.getNode_id(),it_pl);
+        if(p_mn.getPluginList().size() > 0)
+        {
+            logger.info("[Job: " + p_mn.getHostname() + "] Updating Database");
+            // update graphs in database too
+            for(MuninPlugin it_pl : p_mn.getPluginList()) {
+                if(it_pl.getGraphs().size() > 0)
+                {
+                    dbUpdatePluginForNode(p_mn.getNode_id(),it_pl);
+                }
             }
+            // delete now missing plugins
+            dbDeleteMissingPlugins(p_mn.getNode_id(),p_mn.getPluginList());
+            logger.info("[Job: " + p_mn.getHostname() + "] Databaseupdate Done");
         }
-        // delete now missing plugins
-        dbDeleteMissingPlugins(p_mn.getNode_id(),p_mn.getPluginList());
-        logger.info("[Job: " + p_mn.getHostname() + "] Databaseupdate Done");
+        else
+        {
+            logger.warn("[Job: " + p_mn.getHostname() + "] Databaseupdate skipped. Pluginsize is 0");
+        }
     }
     
     public static MuninNode getMuninNodeFromDatabase(Integer nodeId)

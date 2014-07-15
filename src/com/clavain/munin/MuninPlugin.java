@@ -155,12 +155,12 @@ public class MuninPlugin {
             }
             else
             {
-                    setCsMuninSocket(new Socket());
-                    getCsMuninSocket().setSoTimeout(5000);
-                    getCsMuninSocket().setKeepAlive(false);
-                    getCsMuninSocket().setSoLinger(true, 0);
-                    getCsMuninSocket().setReuseAddress(false);                      
-                    getCsMuninSocket().connect(new InetSocketAddress(p_strHostname, p_iPort),5000);
+                setCsMuninSocket(new Socket());
+                getCsMuninSocket().setSoTimeout(5000);
+                getCsMuninSocket().setKeepAlive(false);
+                getCsMuninSocket().setSoLinger(true, 0);
+                getCsMuninSocket().setReuseAddress(false);                      
+                getCsMuninSocket().connect(new InetSocketAddress(p_strHostname, p_iPort),5000);
             }
             PrintStream os = new PrintStream( getCsMuninSocket().getOutputStream() );
             BufferedReader in = new BufferedReader(new InputStreamReader( getCsMuninSocket().getInputStream()) );
