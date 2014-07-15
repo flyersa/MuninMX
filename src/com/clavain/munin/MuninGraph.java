@@ -175,17 +175,20 @@ public class MuninGraph {
         // check for inactivity if intervals is second, if higher 120s reset plugin if its counter or derive
         if(this.b_IntervalIsSeconds)
         {
-            if(this.getGraphType().equals("COUNTER") || this.getGraphType().equals("DERIVE"))
+            if(i_lastGraphFetch > 0)
             {
-                long curTime = com.clavain.utils.Generic.getUnixtime();
-                long minTime = curTime - 140;
-                if(i_lastGraphFetch < minTime)
+                if(this.getGraphType().equals("COUNTER") || this.getGraphType().equals("DERIVE"))
                 {
-                    com.clavain.muninmxcd.logger.warn("resetting graph "+this.getGraphName()+" from custom interval because no response for 140 seconds");
-                    this.is_init = false;
-                    this.bd_LastGraphValueCounter = new BigDecimal("0");
-                    this.bd_LastGraphValue = new BigDecimal("0");
-                    this.bd_GraphValue = new BigDecimal("0");
+                    long curTime = com.clavain.utils.Generic.getUnixtime();
+                    long minTime = curTime - 140;
+                    if(i_lastGraphFetch < minTime)
+                    {
+                        com.clavain.muninmxcd.logger.warn("resetting graph "+this.getGraphName()+" from custom interval because no response for 140 seconds");
+                        this.is_init = false;
+                        this.bd_LastGraphValueCounter = new BigDecimal("0");
+                        this.bd_LastGraphValue = new BigDecimal("0");
+                        this.bd_GraphValue = new BigDecimal("0");
+                    }
                 }
             }
         }
