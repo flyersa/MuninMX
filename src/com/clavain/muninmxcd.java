@@ -6,6 +6,9 @@
  */
 package com.clavain;
 
+import com.clavain.alerts.msg.PushOverMessage;
+import com.clavain.alerts.msg.ShortTextMessage;
+import com.clavain.alerts.msg.TTSMessage;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -63,6 +66,10 @@ public class muninmxcd {
     public static Scheduler sched;
     public static Scheduler sched_custom;
     public static CopyOnWriteArrayList<SocketCheck> v_sockets;
+    // alerting
+    public static LinkedBlockingQueue<PushOverMessage> notification_pushover_queue = new LinkedBlockingQueue<PushOverMessage>();
+    public static LinkedBlockingQueue<ShortTextMessage> notification_sms_queue = new LinkedBlockingQueue<ShortTextMessage>();
+    public static LinkedBlockingQueue<TTSMessage> notification_tts_queue = new LinkedBlockingQueue<TTSMessage>();    
     
     /**
      * @param args the command line arguments
