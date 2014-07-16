@@ -30,6 +30,8 @@ import org.apache.commons.mail.Email;
 import org.apache.commons.mail.SimpleEmail;
 import static com.clavain.muninmxcd.logger;
 import static com.clavain.muninmxcd.p;
+import static com.clavain.alerts.Helpers.*;
+import static com.clavain.utils.Generic.sendPost;
 
 /**
  *
