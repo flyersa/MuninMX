@@ -31,329 +31,413 @@ import static com.clavain.utils.Quartz.*;
  *
  * @author phantom
  */
-public class JettyHandler extends AbstractHandler
-{
+public class JettyHandler extends AbstractHandler {
+
     Logger logger = Logger.getRootLogger();
     public static HttpServletResponse response;
-    public static PrintWriter writer;
-    
-    public void handle(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse p_response) 
-        throws IOException, ServletException
-    {
-        if(!target.equals("/favicon.ico"))
-        {
-            logger.info("Request from ["+baseRequest.getRemoteAddr()+"] : " + target);
+    //public static PrintWriter writer;
+
+    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse p_response)
+            throws IOException, ServletException {
+        if (!target.equals("/favicon.ico")) {
+            logger.info("Request from [" + baseRequest.getRemoteAddr() + "] : " + target);
         }
         response = p_response;
         response.setContentType("text/html;charset=utf-8");
         response.setHeader("Server", "MuninMXcd" + com.clavain.muninmxcd.version);
         response.setHeader("Access-Control-Allow-Origin", "*");
-        
-        writer = response.getWriter();
-        
-        baseRequest.setHandled(true);
-        
+
+        //writer = response.getWriter();
+
+        //baseRequest.setHandled(true);
+
         List l_lTargets = new ArrayList();
-        StringTokenizer st = new StringTokenizer(target,"/");
+        StringTokenizer st = new StringTokenizer(target, "/");
         while (st.hasMoreTokens()) {
             String l_strToken = st.nextToken();
             l_lTargets.add(l_strToken);
             //response.getWriter().println(st.nextToken());
         }
-        
+
         // multi request?
-        if(l_lTargets.size() > 1)
-        {
+        if (l_lTargets.size() > 1) {
             // listings
-            if(l_lTargets.get(0).equals("list"))
-            {
+            if (l_lTargets.get(0).equals("list")) {
                 // list nodes
-                if(l_lTargets.get(1).equals("nodes"))
-                {
-                    if(l_lTargets.size() > 2)
-                    {
-                        listNodes(l_lTargets.get(2).toString());
+                if (l_lTargets.get(1).equals("nodes")) {
+                    if (l_lTargets.size() > 2) {
+                        listNodes(l_lTargets.get(2).toString(), baseRequest);
+                    } else {
+                        listNodes(baseRequest);
                     }
-                    else
-                    {
-                        listNodes();
+                } // custom interval plugins
+                else if (l_lTargets.get(1).equals("customintervals")) {
+
+                    try (PrintWriter writer = response.getWriter()) {
+                        writeJsonWithTransient(com.clavain.muninmxcd.v_cinterval_plugins, writer);
+                    } catch (Exception ex) {
+                        baseRequest.setHandled(true);
+                    } finally {
+                        baseRequest.setHandled(true);
                     }
                 }
-                // custom interval plugins
-                else if(l_lTargets.get(1).equals("customintervals"))
-                {
-                    writeJsonWithTransient(com.clavain.muninmxcd.v_cinterval_plugins);
-                }
-            }
-            // query a node
-            else if(l_lTargets.get(0).equals("node"))
-            {
+            } // query a node
+            else if (l_lTargets.get(0).equals("node")) {
                 //logger.debug(l_lTargets.size());
                 MuninNode mn = null;
-                if(l_lTargets.size() <= 2)
-                {
-                    mn = returnNode(Integer.parseInt(l_lTargets.get(1).toString()),true);   
-                }
-                else
-                {
+                if (l_lTargets.size() <= 2) {
+                    mn = returnNode(Integer.parseInt(l_lTargets.get(1).toString()), true, baseRequest);
+                } else {
                     // retrieve available munin plugins for this node
-                    mn = returnNode(Integer.parseInt(l_lTargets.get(1).toString()),false);    
-                    if(l_lTargets.get(2).equals("plugins") && mn != null)
-                    {
+                    mn = returnNode(Integer.parseInt(l_lTargets.get(1).toString()), false, baseRequest);
+                    if (l_lTargets.get(2).equals("plugins") && mn != null) {
                         logger.info("query plugins for " + mn.getNodename());
-                        writeJson(mn.getPluginList());
-                    }
-                    else if(l_lTargets.get(2).equals("loadplugins") && mn != null)
-                    {
-                        logger.info("loading  plugins for " + mn.getNodename());
-                        writeJson(mn.loadPlugins());
-                        dbUpdateAllPluginsForNode(mn);
-                    }                     
-                    // return graphs for a given plugin, start up node if not running
-                    else if(l_lTargets.get(2).equals("fetch") && l_lTargets.size() == 4 && mn != null)
-                    {
-                        logger.debug("query plugin: " + l_lTargets.get(3) + " for node: " + mn.getNodename());
-                        fetchPlugin(mn,l_lTargets.get(3).toString());
-                    }
-                }
-            }
-            // get joblist
-            else if (l_lTargets.get(0).equals("joblist"))
-            {                    
-                writeJson(getScheduledJobs());
-            }
-            // get joblist
-            else if (l_lTargets.get(0).equals("customjoblist"))
-            {                    
-                writeJsonWithTransient(getScheduledCustomJobs());
-            }            
-            // add a new job
-            else if(l_lTargets.get(0).equals("queuejob"))
-            {
-                if(l_lTargets.size() < 2)
-                {
-                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                     writer.println("no node id specified");  
-                   } 
-                   else
-                   {   
-                       Integer nodeId = Integer.parseInt(l_lTargets.get(1).toString());
-                       MuninNode l_mn = getMuninNodeFromDatabase(nodeId);
-                       unscheduleCheck(l_mn.getNode_id().toString(),l_mn.getUser_id().toString());
-                       com.clavain.muninmxcd.v_munin_nodes.add(l_mn);
-                       if(scheduleJob(l_mn))
-                       {
-                           writeJson(true);
-                       }
-                       else
-                       {
-                            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                            writer.println("queue error");                             
-                       }
-                   }   
-            }
-            // add a new customjob
-            else if(l_lTargets.get(0).equals("queuecustomjob"))
-            {
-                if(l_lTargets.size() < 3)
-                {
-                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                     writer.println("no custom id and/or user id specified. syntax: queuecustomjob/$customid/$userid");  
-                   } 
-                   else
-                   {   
-                       Integer customId = Integer.parseInt(l_lTargets.get(1).toString());
-                       Integer userId = Integer.parseInt(l_lTargets.get(2).toString());
-                       unscheduleCustomJob(customId.toString(),userId.toString());
-                       //com.clavain.muninmxcd.v_munin_nodes.add(l_mn);
-                       if(scheduleCustomIntervalJob(customId))
-                       {
-                           writeJson(true);
-                       }
-                       else
-                       {
-                            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                            writer.println("queue error");                             
-                       }
-                   }   
-            }            
-            // delete a job
-            else if(l_lTargets.get(0).equals("deletejob"))
-            {     
-                if(l_lTargets.size() < 2)
-                {
-                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                     writer.println("no node id and user_id specified");               
-                } 
-                else
-                {
-                    boolean ucRet = unscheduleCheck(l_lTargets.get(1).toString(), l_lTargets.get(2).toString());
-                    if(!ucRet)
-                    {
-                       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                       writer.println("unable to delete check, maybe its already deleted");                                
-                    }
-                    else
-                    {
-                        Integer nodeId = Integer.parseInt(l_lTargets.get(1).toString());
-                        writeJson(ucRet);
-                        com.clavain.muninmxcd.v_munin_nodes.remove(getMuninNode(nodeId));
-                        
-                    }
-                }
-            }  
-            // delete a job
-            else if(l_lTargets.get(0).equals("deletecustomjob"))
-            {     
-                if(l_lTargets.size() < 3)
-                {
-                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                     writer.println("no custom id and user_id specified");               
-                } 
-                else
-                {
-                    boolean ucRet = unscheduleCustomJob(l_lTargets.get(1).toString(), l_lTargets.get(2).toString());
-                    if(!ucRet)
-                    {
-                       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                       writer.println("unable to delete custom job, maybe its already deleted");                                
-                    }
-                    else
-                    {
-                        writeJson(ucRet);        
-                    }
-                }
-            }               
-        }
-        else
-        {
-           // single requests
 
+                        try (PrintWriter writer = response.getWriter()) {
+                            writeJson(mn.getPluginList(), writer);
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }
+                    } else if (l_lTargets.get(2).equals("loadplugins") && mn != null) {
+                        logger.info("loading  plugins for " + mn.getNodename());
+                        try (PrintWriter writer = response.getWriter()) {
+                            writeJson(mn.loadPlugins(), writer);
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }
+
+                        dbUpdateAllPluginsForNode(mn);
+                    } // return graphs for a given plugin, start up node if not running
+                    else if (l_lTargets.get(2).equals("fetch") && l_lTargets.size() == 4 && mn != null) {
+                        logger.debug("query plugin: " + l_lTargets.get(3) + " for node: " + mn.getNodename());
+                        try (PrintWriter writer = response.getWriter()) {
+                            fetchPlugin(mn, l_lTargets.get(3).toString(), baseRequest);
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }
+
+                    }
+                }
+            } // get joblist
+            else if (l_lTargets.get(0).equals("joblist")) {
+                try (PrintWriter writer = response.getWriter()) {
+                    writeJson(getScheduledJobs(), writer);
+                } catch (Exception ex) {
+                    baseRequest.setHandled(true);
+                } finally {
+                    baseRequest.setHandled(true);
+                }
+            } // get joblist
+            else if (l_lTargets.get(0).equals("customjoblist")) {
+
+                try (PrintWriter writer = response.getWriter()) {
+                    writeJsonWithTransient(getScheduledCustomJobs(), writer);
+                } catch (Exception ex) {
+                    baseRequest.setHandled(true);
+                } finally {
+                    baseRequest.setHandled(true);
+                }
+            } // add a new job
+            else if (l_lTargets.get(0).equals("queuejob")) {
+                if (l_lTargets.size() < 2) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+                    try (PrintWriter writer = response.getWriter()) {
+                        writer.println("no node id specified");
+                    } catch (Exception ex) {
+                        baseRequest.setHandled(true);
+                    } finally {
+                        baseRequest.setHandled(true);
+                    }
+                } else {
+                    Integer nodeId = Integer.parseInt(l_lTargets.get(1).toString());
+                    MuninNode l_mn = getMuninNodeFromDatabase(nodeId);
+                    unscheduleCheck(l_mn.getNode_id().toString(), l_mn.getUser_id().toString());
+                    com.clavain.muninmxcd.v_munin_nodes.add(l_mn);
+                    if (scheduleJob(l_mn)) {
+                        try (PrintWriter writer = response.getWriter()) {
+                            writeJson(true, writer);
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+                        try (PrintWriter writer = response.getWriter()) {
+                            writer.println("queue error");
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }
+                    }
+                }
+            } // add a new customjob
+            else if (l_lTargets.get(0).equals("queuecustomjob")) {
+                if (l_lTargets.size() < 3) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+                    try (PrintWriter writer = response.getWriter()) {
+                        writer.println("no custom id and/or user id specified. syntax: queuecustomjob/$customid/$userid");
+                    } catch (Exception ex) {
+                        baseRequest.setHandled(true);
+                    } finally {
+                        baseRequest.setHandled(true);
+                    }
+                } else {
+                    Integer customId = Integer.parseInt(l_lTargets.get(1).toString());
+                    Integer userId = Integer.parseInt(l_lTargets.get(2).toString());
+                    unscheduleCustomJob(customId.toString(), userId.toString());
+                    //com.clavain.muninmxcd.v_munin_nodes.add(l_mn);
+                    if (scheduleCustomIntervalJob(customId)) {
+                        try (PrintWriter writer = response.getWriter()) {
+                            writeJson(true, writer);
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }
+
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        try (PrintWriter writer = response.getWriter()) {
+                            writer.println("queue error");
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }
+
+                    }
+                }
+            } // delete a job
+            else if (l_lTargets.get(0).equals("deletejob")) {
+                if (l_lTargets.size() < 2) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    try (PrintWriter writer = response.getWriter()) {
+                        writer.println("no node id and user_id specified");
+                    } catch (Exception ex) {
+                        baseRequest.setHandled(true);
+                    } finally {
+                        baseRequest.setHandled(true);
+                    }
+                } else {
+                    boolean ucRet = unscheduleCheck(l_lTargets.get(1).toString(), l_lTargets.get(2).toString());
+                    if (!ucRet) {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        try (PrintWriter writer = response.getWriter()) {
+                            writer.println("unable to delete check, maybe its already deleted");
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }
+                    } else {
+                        Integer nodeId = Integer.parseInt(l_lTargets.get(1).toString());
+                        try (PrintWriter writer = response.getWriter()) {
+                            writeJson(ucRet, writer);
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }
+                        com.clavain.muninmxcd.v_munin_nodes.remove(getMuninNode(nodeId));
+
+                    }
+                }
+            } // delete a job
+            else if (l_lTargets.get(0).equals("deletecustomjob")) {
+                if (l_lTargets.size() < 3) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    try (PrintWriter writer = response.getWriter()) {
+                        writer.println("no custom id and user_id specified");
+                    } catch (Exception ex) {
+                        baseRequest.setHandled(true);
+                    } finally {
+                        baseRequest.setHandled(true);
+                    }
+                } else {
+                    boolean ucRet = unscheduleCustomJob(l_lTargets.get(1).toString(), l_lTargets.get(2).toString());
+                    if (!ucRet) {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        try (PrintWriter writer = response.getWriter()) {
+                            writer.println("unable to delete custom job, maybe its already deleted");
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }
+                    } else {
+                        try (PrintWriter writer = response.getWriter()) {
+                            writeJson(ucRet, writer);
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }
+
+                    }
+                }
+            }
+        } else {
+            // single requests
         }
-        
+
     }
 
-    
-    /** List Node Detail */
-    private MuninNode returnNode(Integer nodeId,boolean p_bOutput)
-    {
+    /**
+     * List Node Detail
+     */
+    private MuninNode returnNode(Integer nodeId, boolean p_bOutput, Request baseRequest) {
         MuninNode mn = getMuninNode(nodeId);
-        if(mn == null)
-        {
-            if(p_bOutput)
-            {
+        if (mn == null) {
+            if (p_bOutput) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                writer.println("node not found");
+                try (PrintWriter writer = response.getWriter()) {
+                    writer.println("node not found");
+                } catch (Exception ex) {
+                    baseRequest.setHandled(true);
+                } finally {
+                    baseRequest.setHandled(true);
+                }
             }
             return null;
-        }
-        else
-        {
-            if(p_bOutput)
-            { 
-                writeJson(mn); 
+        } else {
+            if (p_bOutput) {
+                try (PrintWriter writer = response.getWriter()) {
+                    writeJson(mn, writer);
+                } catch (Exception ex) {
+                    baseRequest.setHandled(true);
+                } finally {
+                    baseRequest.setHandled(true);
+                }
             }
             return mn;
         }
     }
-    
-    /** List nodes for monitoring */
-    private void listNodes() 
-    {
+
+    /**
+     * List nodes for monitoring
+     */
+    private void listNodes(Request baseRequest) {
         Iterator it = v_munin_nodes.iterator();
         List l_nodes = new ArrayList();
-        while (it.hasNext())
-        {
-             MuninNode l_mn = (MuninNode) it.next();
-             if(!l_mn.getHostname().equals("127.0.0.1"))
-             {
+        while (it.hasNext()) {
+            MuninNode l_mn = (MuninNode) it.next();
+            if (!l_mn.getHostname().equals("127.0.0.1")) {
                 l_nodes.add(l_mn);
-             }
+            }
         }
-        writeJson(l_nodes);
+        try (PrintWriter writer = response.getWriter()) {
+            writeJson(l_nodes, writer);
+        } catch (Exception ex) {
+            baseRequest.setHandled(true);
+        } finally {
+            baseRequest.setHandled(true);
+        }
     }
-    
-    /** List nodes for monitoring in a given group */
-    private void listNodes(String p_strGroup) 
-    {
+
+    /**
+     * List nodes for monitoring in a given group
+     */
+    private void listNodes(String p_strGroup, Request baseRequest) {
         Iterator it = v_munin_nodes.iterator();
         List l_nodes = new ArrayList();
-        while (it.hasNext())
-        {
-             MuninNode l_mn = (MuninNode) it.next();
-             if(l_mn.getGroup() != null)
-             {
-                if(l_mn.getGroup().equals(p_strGroup))
-                {
-                    if(!l_mn.getHostname().equals("127.0.0.1"))
-                    {
+        while (it.hasNext()) {
+            MuninNode l_mn = (MuninNode) it.next();
+            if (l_mn.getGroup() != null) {
+                if (l_mn.getGroup().equals(p_strGroup)) {
+                    if (!l_mn.getHostname().equals("127.0.0.1")) {
                         l_nodes.add(l_mn);
                     }
                 }
-             }
+            }
         }
-        if(l_nodes.size() < 1)
-        {
+        if (l_nodes.size() < 1) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            writer.println("no nodes available for query");
+            try (PrintWriter writer = response.getWriter()) {
+                writer.println("no nodes available for query");
+            } catch (Exception ex) {
+                baseRequest.setHandled(true);
+            } finally {
+                baseRequest.setHandled(true);
+            }
             return;
-        }        
-        writeJson(l_nodes);
-    }    
-    
-    
-    public static void writeJson(Object p_obj)
-    {
+        } else {
+            try (PrintWriter writer = response.getWriter()) {
+                writeJson(l_nodes, writer);
+            } catch (Exception ex) {
+                baseRequest.setHandled(true);
+            } finally {
+                baseRequest.setHandled(true);
+            }
+        }
+
+    }
+
+    public static void writeJson(Object p_obj, PrintWriter writer) {
         Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create();
-        writer.println(gson.toJson(p_obj));   
+        writer.println(gson.toJson(p_obj));
         gson = null;
     }
 
-        public static void writeJsonWithTransient(Object p_obj)
-    {
+    public static void writeJsonWithTransient(Object p_obj, PrintWriter writer) {
         Gson gson = new GsonBuilder().create();
-        writer.println(gson.toJson(p_obj));   
+        writer.println(gson.toJson(p_obj));
         gson = null;
     }
-    
-    /** 
-     * will start a collection thread if not running, return all graphs for plugin
+
+    /**
+     * will start a collection thread if not running, return all graphs for
+     * plugin
+     *
      * @param mn a MuninNode
-     * @param p_strPluginName name of plugin to retrieve graphs 
+     * @param p_strPluginName name of plugin to retrieve graphs
      */
-    private void fetchPlugin(MuninNode mn, String p_strPluginName) {
-  
+    private void fetchPlugin(MuninNode mn, String p_strPluginName, Request baseRequest) {
+
         // check if plugin exists
-        if(mn.getLoadedPlugins() != null)
-        {
+        if (mn.getLoadedPlugins() != null) {
             Iterator it = mn.getLoadedPlugins().iterator();
             boolean l_bPfound = false;
-            while(it.hasNext())
-            {
+            while (it.hasNext()) {
                 MuninPlugin l_mp = (MuninPlugin) it.next();
-                if(l_mp.getPluginName().equals(p_strPluginName))
-                {
+                if (l_mp.getPluginName().equals(p_strPluginName)) {
                     l_bPfound = true;
-                    
+
                     // set query time for plugin and node
                     l_mp.setLastFrontendQuery();
                     mn.setLastFrontendQuery();
-                    
-                    writeJson(l_mp.returnAllGraphs());
+                    try (PrintWriter writer = response.getWriter()) {
+                        writeJson(l_mp.returnAllGraphs(), writer);
+                    } catch (Exception ex) {
+                        baseRequest.setHandled(true);
+                    } finally {
+                        baseRequest.setHandled(true);
+                    }
                 }
             }
-            if(l_bPfound == false)
-            {
+            if (l_bPfound == false) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                writer.println("no plugin named " + p_strPluginName+ " found on this node");    
+                try (PrintWriter writer = response.getWriter()) {
+                    writer.println("no plugin named " + p_strPluginName + " found on this node");
+                } catch (Exception ex) {
+                    baseRequest.setHandled(true);
+                } finally {
+                    baseRequest.setHandled(true);
+                }
             }
-        }
-        else
-        {
+        } else {
             mn.loadPlugins();
-            fetchPlugin(mn,p_strPluginName);  
+            fetchPlugin(mn, p_strPluginName, baseRequest);
         }
     }
-    
-       
 }

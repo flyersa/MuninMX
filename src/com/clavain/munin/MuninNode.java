@@ -183,7 +183,7 @@ public class MuninNode
             Socket cs = new Socket();
             cs.setKeepAlive(false);
             cs.setSoLinger(true, 0);
-            cs.setReuseAddress(false);  
+            cs.setReuseAddress(true);  
             cs.setSoTimeout(30000);
             if(!str_via.equals("unset"))
             {
@@ -469,7 +469,7 @@ public class MuninNode
             Socket clientSocket = new Socket();
             clientSocket.setSoTimeout(30000);
             clientSocket.setKeepAlive(false);
-            clientSocket.setReuseAddress(false);   
+            clientSocket.setReuseAddress(true);   
             if(this.str_via.equals("unset"))
             {            
                 clientSocket.connect(new InetSocketAddress(this.getHostname(), this.getPort()),30000);
