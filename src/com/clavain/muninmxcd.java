@@ -6,9 +6,13 @@
  */
 package com.clavain;
 
+import com.clavain.alerts.Alert;
 import com.clavain.alerts.msg.PushOverMessage;
 import com.clavain.alerts.msg.ShortTextMessage;
 import com.clavain.alerts.msg.TTSMessage;
+import com.clavain.alerts.ratelimiter.PushOverLimiter;
+import com.clavain.alerts.ratelimiter.SMSLimiter;
+import com.clavain.alerts.ratelimiter.TTSLimiter;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -69,7 +73,8 @@ public class muninmxcd {
     // alerting
     public static LinkedBlockingQueue<PushOverMessage> notification_pushover_queue = new LinkedBlockingQueue<PushOverMessage>();
     public static LinkedBlockingQueue<ShortTextMessage> notification_sms_queue = new LinkedBlockingQueue<ShortTextMessage>();
-    public static LinkedBlockingQueue<TTSMessage> notification_tts_queue = new LinkedBlockingQueue<TTSMessage>();    
+    public static LinkedBlockingQueue<TTSMessage> notification_tts_queue = new LinkedBlockingQueue<TTSMessage>();  
+    public static CopyOnWriteArrayList<Alert> v_alerts = new CopyOnWriteArrayList<>();
     
     /**
      * @param args the command line arguments
@@ -216,11 +221,23 @@ public class muninmxcd {
             // schedule custom interval jobs
             dbScheduleAllCustomJobs();
             
+            // add all alerts
+            dbAddAllAlerts();
+            
             // starting MongoExecutor
             new Thread(new MongoExecutor()).start();
             
             // starting newnodewatcher
             new Thread(new NewNodeWatcher()).start();
+            
+            // start pushover sending message
+            new Thread(new PushOverLimiter()).start();
+            
+            // SMS Limiter
+            new Thread(new SMSLimiter()).start();
+
+            // TTS Limiter
+            new Thread(new TTSLimiter()).start();            
             
             int curTime;
             int toTime;

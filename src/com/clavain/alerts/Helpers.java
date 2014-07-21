@@ -84,12 +84,11 @@ public class Helpers {
         return null;        
     }  
     
-    public static void updateNotificationLog(Integer cid, Integer contact_id, String msg, String msg_type, boolean selenium)
+    public static void updateNotificationLog(Integer cid, Integer contact_id, String msg, String msg_type)
     {
         try 
         {
             java.sql.Statement stmt = com.clavain.muninmxcd.conn.createStatement();
-            Integer selVal = 0;
             stmt.executeUpdate("INSERT INTO notification_log (cid,contact_id,msg,msg_type) VALUES ("+cid+","+contact_id+",'"+msg+"','"+msg_type+"')");
         } catch (Exception ex)
         {

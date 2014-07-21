@@ -39,18 +39,20 @@ import static com.clavain.utils.Generic.sendPost;
  */
 public class Methods {
 
-    public static void sendNotifications(ReturnServiceCheck sc, boolean flapalert, int flapcount) {
-        Integer cid = sc.getCid();
+    public static void sendNotifications(Alert alert) {
+        Integer aid = alert.getAlert_id();
+
         try {
             java.sql.Statement stmt = com.clavain.muninmxcd.conn.createStatement();
 
-            ResultSet rs = stmt.executeQuery("SELECT notifications.id as nid, contacts.* FROM `notifications` LEFT JOIN contacts ON notifications.contact_id = contacts.id WHERE check_id = " + cid);
+            // SELECT alert_contacts.id as nid, contacts.* FROM `alert_contacts` LEFT JOIN contacts ON alert_contacts.contact_id = contacts.id WHERE alert_id = 1
+            ResultSet rs = stmt.executeQuery("SELECT alert_contacts.id as nid, contacts.*,contacts.id AS contactId FROM `alert_contacts` LEFT JOIN contacts ON alert_contacts.contact_id = contacts.id WHERE alert_id = " + aid);
             while (rs.next()) {
-                Integer contact_id = rs.getInt("id");
+                Integer contact_id = rs.getInt("contactId");
                 String dayField = getScheduleFieldToCheck();
-                logger.info("[Notifications " + cid + "] Found " + rs.getString("contact_name"));
+                logger.info("[Notifications " + aid + "] Found " + rs.getString("contact_name"));
                 if (rs.getString(dayField).equals("disabled")) {
-                    logger.info("[Notifications " + cid + "] " + rs.getString("contact_name") + " disabled notifications for today - skipping contact");
+                    logger.info("[Notifications " + aid + "] " + rs.getString("contact_name") + " disabled notifications for today - skipping contact");
                 } else {
                     String splitField = rs.getString(dayField);
                     // figure out if this user got notifications enabled or disabled for the current hour and time
@@ -60,59 +62,53 @@ public class Methods {
                     long cur = (System.currentTimeMillis() / 1000L);
                     // if in range send notifications
                     if (a < cur && b > cur) {
-                        String failTime = getHumanReadableDateFromTimeStampWithTimezone(sc.getDownTimeConfirmedAt(), rs.getString("timezone"));
-                        String title = "ALERT: " + sc.getCheckname() + " (" + sc.getChecktype() + ")";
-                        String message = "Service Downtime verified @ " + failTime + ".   Details: " + sc.getOutput().get(0);
-                        if (flapalert) {
-                            message = "Service flapped " + flapcount + " on different probes within the last hour";
-                        }
+                        String failTime = getHumanReadableDateFromTimeStampWithTimezone(alert.getLast_alert(), rs.getString("timezone"));
+                        String title = "ALERT: " + alert.getHostname()+ " (" + alert.getPluginName() + ")";
+                        String message = "Alert Time: " + failTime + ".   Details: " + alert.getAlertMsg();
+                       
                         String json = "";
                         if (rs.getInt("callback_active") == 1) {
-                            logger.info("[Notifications " + cid + "] " + rs.getString("contact_name") + " Sending Callback");
-                            sendCallback(sc, rs.getString("contact_callback"));
-                            updateNotificationLog(cid, contact_id, "Callback executed to " + rs.getString("contact_callback"), "callback", false);
+                            logger.info("[Notifications " + aid + "] " + rs.getString("contact_name") + " Sending Callback");
+                            sendCallback(alert, rs.getString("contact_callback"));
+                            updateNotificationLog(aid, contact_id, "Callback executed to " + rs.getString("contact_callback"), "callback");
                         }
                         if (rs.getInt("tts_active") == 1) {
-                            title = "This is a PingReports Alert: The Servicecheck: " + sc.getCheckname() + " with type: " + sc.getChecktype() + " is in alert state.";
-                            logger.info("[Notifications " + cid + "] " + rs.getString("contact_name") + " Initiating TTS Call");
+                            title = "This is a MuninMX Alert: Plugin: " + alert.getPluginName() + " on host " + alert.getHostname() + " is in alert state.";
+                            logger.info("[Notifications " + aid + "] " + rs.getString("contact_name") + " Initiating TTS Call");
                             sendTTS(title, message, rs.getString("contact_mobile_nr"), rs.getInt("user_id"));
-                            updateNotificationLog(cid, contact_id, "Text2Speech Call initiated to " + rs.getString("contact_mobile_nr"), "tts", false);
+                            updateNotificationLog(aid, contact_id, "Text2Speech Call initiated to " + rs.getString("contact_mobile_nr"), "tts");
                         }
                         if (rs.getInt("email_active") == 1) {
-                            logger.info("[Notifications " + cid + "] " + rs.getString("contact_name") + " Sending E-Mail");
+                            logger.info("[Notifications " + aid + "] " + rs.getString("contact_name") + " Sending E-Mail");
                             String ENDL = System.getProperty("line.separator");
-                            message = "Service Downtime verified @ " + failTime + "." + ENDL + ENDL + "Details:" + ENDL + ENDL + sc.getOutput().get(0);
-                            if (flapalert) {
-                                message = "Service flapped " + flapcount + " on different probes within the last hour";
-                            }
+                            message = "Service Downtime verified @ " + failTime + "." + ENDL + ENDL + "Details:" + ENDL + ENDL + alert.getAlertMsg();
+
                             sendMail(title, message, rs.getString("contact_email"));
-                            updateNotificationLog(cid, contact_id, "E-Mail send to " + rs.getString("contact_email"), "email", false);
+                            updateNotificationLog(aid, contact_id, "E-Mail send to " + rs.getString("contact_email"), "email");
                         }
                         if (rs.getInt("sms_active") == 1) {
-                            title = sc.getCheckname() + "(" + sc.getChecktype() + ")";
-                            message = sc.getOutput().get(0);
-                            if (flapalert) {
-                                message = "Service flapped " + flapcount + " on different probes within the last hour";
-                            }
-                            logger.info("[Notifications " + cid + "] " + rs.getString("contact_name") + " Sending SMS");
+                            title = alert.getHostname() + " reports ";
+                            message = alert.getAlertMsg();
+
+                            logger.info("[Notifications " + aid + "] " + rs.getString("contact_name") + " Sending SMS");
                             sendSMS(title, message, rs.getString("contact_mobile_nr"), rs.getInt("user_id"));
-                            updateNotificationLog(cid, contact_id, "SMS send to " + rs.getString("contact_mobile_nr"), "sms", false);
+                            updateNotificationLog(aid, contact_id, "SMS send to " + rs.getString("contact_mobile_nr"), "sms");
                         }
                         if (rs.getInt("pushover_active") == 1) {
-                            logger.info("[Notifications " + cid + "] " + rs.getString("contact_name") + " Sending Pushover Notification");
+                            logger.info("[Notifications " + aid + "] " + rs.getString("contact_name") + " Sending Pushover Notification");
                             sendPushover(title, message, rs.getString("pushover_key"));
-                            updateNotificationLog(cid, contact_id, "PushOver Message send to " + rs.getString("pushover_key"), "pushover", false);
+                            updateNotificationLog(aid, contact_id, "PushOver Message send to " + rs.getString("pushover_key"), "pushover");
                         }
-                        logger.info("[Notifications " + cid + "] " + rs.getString("contact_name") + " skipping. A flap notification was already send within the last hour");
+                        logger.info("[Notifications " + aid + "] " + rs.getString("contact_name") + " skipping. A flap notification was already send within the last hour");
 
                     } else {
-                        logger.info("[Notifications " + cid + "] " + rs.getString("contact_name") + " disabled notifications for this timerange - skipping contact");
+                        logger.info("[Notifications " + aid + "] " + rs.getString("contact_name") + " disabled notifications for this timerange - skipping contact");
                     }
                 }
             }
 
         } catch (Exception ex) {
-            logger.error("Error in sendNotifications for CID " + cid + " : " + ex.getLocalizedMessage());
+            logger.error("Error in sendNotifications for CID " + aid + " : " + ex.getLocalizedMessage());
             ex.printStackTrace();
         }
     }
@@ -127,9 +123,19 @@ public class Methods {
         try {
             Email email = new SimpleEmail();
             email.setHostName(p.getProperty("mailserver.host"));
-            email.setSmtpPort(25);
-            email.setAuthentication(p.getProperty("mailserver.user"), p.getProperty("mailserver.pass"));
-            email.setSSLOnConnect(false);
+            email.setSmtpPort(Integer.parseInt(p.getProperty("mailserver.port")));
+            if(p.getProperty("mailserver.useauth").equals("true"))
+            {
+                email.setAuthentication(p.getProperty("mailserver.user"), p.getProperty("mailserver.pass"));
+            }
+            if(p.getProperty("mailserver.usessl").equals("true"))
+            {
+                email.setSSLOnConnect(true);
+            }
+            else
+            {
+                email.setSSLOnConnect(false);
+            }
             email.setFrom(p.getProperty("mailserver.from"));
             email.setSubject(title);
             email.setMsg(message);
@@ -171,9 +177,9 @@ public class Methods {
     }
 
     // send a http json callback to a url
-    private static void sendCallback(ReturnServiceCheck sc, String url) {
+    private static void sendCallback(Alert alert, String url) {
         Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create();
-        String json = gson.toJson(sc);
+        String json = gson.toJson(alert);
         sendPost(url, json);
     }
 

@@ -6,6 +6,7 @@
  */
 package com.clavain.utils;
 
+import com.clavain.alerts.Alert;
 import com.clavain.munin.MuninNode;
 import com.clavain.munin.MuninPlugin;
 import java.util.Iterator;
@@ -18,9 +19,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.TimeZone;
 
 /**
  *
@@ -28,6 +33,21 @@ import java.util.StringTokenizer;
  */
 public class Generic {
 
+    public static String getHumanReadableDateFromTimeStampWithTimezone(long ts,String Timezone)
+    {
+         Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone(Timezone));
+         cal.setTimeInMillis(ts * 1000);
+         String retval = getConvertedCalendar(cal);
+         retval = retval + " " + Timezone;
+         return retval;
+    }
+    
+    public static String getConvertedCalendar(Calendar calendar) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        sdf.setTimeZone(calendar.getTimeZone());
+        return sdf.format(calendar.getTime());  
+    }        
+    
     public static int sendPost(String p_url, String p_data) {
         int retval = 0;
         try {
@@ -105,6 +125,34 @@ public class Generic {
         return null;
     }
 
+    
+    public static String getNodeHostNameForMuninNode(Integer nodeId)
+    {
+        MuninNode mn = getMuninNode(nodeId);
+        if(mn == null)
+        {
+            return "";
+        }
+        else
+        {
+            String r_hostname = mn.getHostname();
+            return r_hostname;
+        }
+    }
+    
+    public static Alert getAlertByNidPluginAndGraph(Integer p_nid,String p_strPlugin, String p_strGraph)
+    {
+        for (Alert l_av : com.clavain.muninmxcd.v_alerts) {
+            if (l_av.getNode_id() == p_nid) {
+                if(l_av.getPluginName().equals(p_strPlugin) && l_av.getGraphName().equals(p_strGraph))
+                {
+                    return l_av;
+                }
+            }
+        }  
+        return null;
+    }
+    
     /**
      * Return a MuninNode by Node ID
      *

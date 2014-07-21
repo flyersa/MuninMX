@@ -6,6 +6,7 @@
  */
 package com.clavain.munin;
 
+import com.clavain.alerts.Alert;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
@@ -19,6 +20,7 @@ import static com.clavain.muninmxcd.p;
 import static com.clavain.muninmxcd.logger;
 import static com.clavain.utils.Generic.getUnixtime;
 import static com.clavain.muninmxcd.logMore;
+import static com.clavain.utils.Generic.getAlertByNidPluginAndGraph;
 /**
  *
  * @author enricokern
@@ -41,7 +43,7 @@ public class MuninPlugin {
     private transient Integer query_interval;
     private transient Integer user_id;
     private transient String crontab = "false";
-    private ArrayList<MuninGraph> v_graphs = new ArrayList<MuninGraph>();;
+    private ArrayList<MuninGraph> v_graphs = new ArrayList<>();
 
     
     public void addGraph(MuninGraph p_graph)
@@ -169,6 +171,17 @@ public class MuninPlugin {
             while((line = in.readLine()) != null) {
                 if(line.startsWith("."))
                 {
+                    // close wait fix for single mode
+                    if(customId != null)
+                    {
+                        os.println("quit");
+                        os.close();
+                        in.close();
+                        csMuninSocket.shutdownInput();
+                        csMuninSocket.shutdownOutput();
+                        csMuninSocket.close();
+                        csMuninSocket = null;
+                    }                        
                     return;
                 }
                 //System.out.println(line);
@@ -202,6 +215,12 @@ public class MuninPlugin {
                                 try
                                 {
                                     l_mg.setGraphValue(l_value.trim());
+                                    // check if we need to add alert value as well
+                                    Alert av = getAlertByNidPluginAndGraph(this.get_NodeId(),this.getPluginName(),l_mg.getGraphName());
+                                    if(av != null)
+                                    {
+                                        av.addAndCheckSample(getUnixtime(), l_value.trim());
+                                    }
                                 } catch (Exception ex)
                                 {
                                     l_mg.setGraphValue("U");

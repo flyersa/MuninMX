@@ -374,9 +374,10 @@ public class MuninNode
                        }
                    }
                     
-                    // add plugin if it got valid graphs
+                    // add plugin if it got valid graphs and add nodeid (req. for alerts)
                     if(l_mp.getGraphs().size() > 0)
                     {
+                        l_mp.set_NodeId(this.getNode_id());
                         getLoadedPlugins().add(l_mp);
                     }
                     // flush temporary negatives

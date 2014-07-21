@@ -26,6 +26,8 @@ import static com.clavain.utils.Database.getMuninNodeFromDatabase;
 import static com.clavain.utils.Database.dbUpdateAllPluginsForNode;
 import static com.clavain.muninmxcd.v_munin_nodes;
 import static com.clavain.utils.Quartz.*;
+import java.net.URLDecoder;
+import static com.clavain.alerts.Methods.sendPushOverMessage;
 
 /**
  *
@@ -133,7 +135,17 @@ public class JettyHandler extends AbstractHandler {
                 } finally {
                     baseRequest.setHandled(true);
                 }
-            } // get joblist
+            } 
+            else if (l_lTargets.get(0).equals("alertlist")) {
+                try (PrintWriter writer = response.getWriter()) {
+                    writeJson(com.clavain.muninmxcd.v_alerts, writer);
+                } catch (Exception ex) {
+                    baseRequest.setHandled(true);
+                } finally {
+                    baseRequest.setHandled(true);
+                }
+            }                 
+            // get joblist
             else if (l_lTargets.get(0).equals("customjoblist")) {
 
                 try (PrintWriter writer = response.getWriter()) {
@@ -287,6 +299,29 @@ public class JettyHandler extends AbstractHandler {
                     }
                 }
             }
+             // send pushover test message
+            else if(l_lTargets.get(0).equals("pushovertest"))
+            {
+               if(l_lTargets.size() < 4)
+               {
+                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                 try(PrintWriter writer = response.getWriter()) {
+                 writer.println("userkey, title, message,");  
+                 } finally { baseRequest.setHandled(true); }                         
+               }
+               else
+               {
+                    String userkey = l_lTargets.get(1).toString();
+                    String title     = l_lTargets.get(2).toString();
+                    String message   = l_lTargets.get(3).toString(); 
+                    title = URLDecoder.decode(title,"UTF-8");
+                    message = URLDecoder.decode(message,"UTF-8");
+                    try(PrintWriter writer = response.getWriter()) {
+                        writeJson(sendPushOverMessage(userkey, title, message),writer);
+                    } finally { baseRequest.setHandled(true); 
+                    }
+               }
+            }           
         } else {
             // single requests
         }

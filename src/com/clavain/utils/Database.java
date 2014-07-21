@@ -6,6 +6,7 @@
  */
 package com.clavain.utils;
 
+import com.clavain.alerts.Alert;
 import com.clavain.munin.MuninGraph;
 import com.clavain.munin.MuninNode;
 import com.clavain.munin.MuninPlugin;
@@ -185,6 +186,63 @@ public class Database {
             ex.printStackTrace();
         }
     }
+    
+    public static void dbAddAllAlerts()
+    {
+        try 
+        {
+            Connection conn = connectToDatabase(p);
+            java.sql.Statement stmt = conn.createStatement();  
+            ResultSet rs = stmt.executeQuery("SELECT alerts.*,nodes.hostname FROM alerts LEFT JOIN nodes ON alerts.node_id = nodes.id");
+            while(rs.next())
+            {
+                Alert av = new Alert();
+                av.setAlert_id(rs.getInt("id"));
+                av.setCondition(rs.getString("condition"));
+                av.setGraphName(rs.getString("graphname"));
+                av.setPluginName(rs.getString("pluginname"));
+                av.setRaise_value(rs.getInt("raise_value"));
+                av.setNum_samples(rs.getInt("num_samples"));
+                av.setAlert_limit(rs.getInt("alert_limit"));
+                av.setHostname(rs.getString("hostname"));
+                com.clavain.muninmxcd.v_alerts.add(av);
+            }
+        } catch (Exception ex)
+        {
+            logger.error("Startup for Alerts failed." + ex.getLocalizedMessage());
+            ex.printStackTrace();
+        }     
+    }
+    
+    public boolean dbAddAllAlertWithId(Integer p_aid)
+    {
+        boolean retval = false;
+        try 
+        {
+            Connection conn = connectToDatabase(p);
+            java.sql.Statement stmt = conn.createStatement();  
+            ResultSet rs = stmt.executeQuery("SELECT alerts.*,nodes.hostname FROM alerts LEFT JOIN nodes ON alerts.node_id = nodes.id WHERE alerts.id = " + p_aid);
+            while(rs.next())
+            {
+                Alert av = new Alert();
+                av.setAlert_id(rs.getInt("id"));
+                av.setCondition(rs.getString("condition"));
+                av.setGraphName(rs.getString("graphname"));
+                av.setPluginName(rs.getString("pluginname"));
+                av.setRaise_value(rs.getInt("raise_value"));
+                av.setNum_samples(rs.getInt("num_samples"));
+                av.setAlert_limit(rs.getInt("alert_limit"));
+                av.setHostname(rs.getString("hostname"));
+                com.clavain.muninmxcd.v_alerts.add(av);
+                retval = true;
+            }
+        } catch (Exception ex)
+        {
+            logger.error("Add Alert "+p_aid+" failed." + ex.getLocalizedMessage());
+            ex.printStackTrace();
+        }   
+        return retval;
+    }    
     
     public static MuninPlugin getMuninPluginForCustomJobFromDb(Integer p_id)
     {
