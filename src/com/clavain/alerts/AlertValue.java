@@ -4,13 +4,15 @@
  */
 package com.clavain.alerts;
 
+import java.math.BigDecimal;
+
 /**
  *
  * @author enricokern
  */
 public class AlertValue {
     private int timestamp;
-    private double value;
+    private BigDecimal value = new BigDecimal("0");
 
     /**
      * @return the timestamp
@@ -29,14 +31,14 @@ public class AlertValue {
     /**
      * @return the value
      */
-    public double getValue() {
+    public BigDecimal getValue() {
         return value;
     }
 
     /**
      * @param value the value to set
      */
-    public void setValue(double value) {
+    public void setValue(BigDecimal value) {
         this.value = value;
     }
 }

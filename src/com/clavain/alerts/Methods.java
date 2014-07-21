@@ -81,7 +81,7 @@ public class Methods {
                         if (rs.getInt("email_active") == 1) {
                             logger.info("[Notifications " + aid + "] " + rs.getString("contact_name") + " Sending E-Mail");
                             String ENDL = System.getProperty("line.separator");
-                            message = "Service Downtime verified @ " + failTime + "." + ENDL + ENDL + "Details:" + ENDL + ENDL + alert.getAlertMsg();
+                            message = "Alert Time: " + failTime + "." + ENDL + ENDL + "Details:" + ENDL + ENDL + alert.getAlertMsg();
 
                             sendMail(title, message, rs.getString("contact_email"));
                             updateNotificationLog(aid, contact_id, "E-Mail send to " + rs.getString("contact_email"), "email");
@@ -99,7 +99,7 @@ public class Methods {
                             sendPushover(title, message, rs.getString("pushover_key"));
                             updateNotificationLog(aid, contact_id, "PushOver Message send to " + rs.getString("pushover_key"), "pushover");
                         }
-                        logger.info("[Notifications " + aid + "] " + rs.getString("contact_name") + " skipping. A flap notification was already send within the last hour");
+                      
 
                     } else {
                         logger.info("[Notifications " + aid + "] " + rs.getString("contact_name") + " disabled notifications for this timerange - skipping contact");

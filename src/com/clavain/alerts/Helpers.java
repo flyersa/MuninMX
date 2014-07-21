@@ -95,4 +95,11 @@ public class Helpers {
             com.clavain.muninmxcd.logger.error("Error in updateNotification Log : " + ex.getLocalizedMessage());
         }   
     }
+    
+    public static boolean removeAlert(Integer p_alertId)
+    {
+        boolean retval = false;
+        
+        return retval;
+    }
 }

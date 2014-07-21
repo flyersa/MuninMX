@@ -35,7 +35,7 @@ public class MuninPlugin {
     private transient long   l_lastMuninQuery;
     private transient Socket csMuninSocket;
     private transient boolean b_IntervalIsSeconds = false;
-    private transient int i_nodeId;
+    private int i_nodeId;
     private transient Integer from_time;
     private transient Integer to_time;
     private transient String timezone;
@@ -177,8 +177,6 @@ public class MuninPlugin {
                         os.println("quit");
                         os.close();
                         in.close();
-                        csMuninSocket.shutdownInput();
-                        csMuninSocket.shutdownOutput();
                         csMuninSocket.close();
                         csMuninSocket = null;
                     }                        
@@ -216,10 +214,15 @@ public class MuninPlugin {
                                 {
                                     l_mg.setGraphValue(l_value.trim());
                                     // check if we need to add alert value as well
-                                    Alert av = getAlertByNidPluginAndGraph(this.get_NodeId(),this.getPluginName(),l_mg.getGraphName());
-                                    if(av != null)
+                                    if(l_mg.isInit())
                                     {
-                                        av.addAndCheckSample(getUnixtime(), l_value.trim());
+                                        ArrayList<Alert> av = getAlertByNidPluginAndGraph(this.get_NodeId(),this.getPluginName(),l_mg.getGraphName());
+                                        if(!av.isEmpty())
+                                        {
+                                            for (Alert l_av : av) {
+                                                l_av.addAndCheckSample(getUnixtime(), l_mg.getGraphValue());
+                                            }
+                                        }
                                     }
                                 } catch (Exception ex)
                                 {

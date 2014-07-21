@@ -201,10 +201,11 @@ public class Database {
                 av.setCondition(rs.getString("condition"));
                 av.setGraphName(rs.getString("graphname"));
                 av.setPluginName(rs.getString("pluginname"));
-                av.setRaise_value(rs.getInt("raise_value"));
+                av.setRaise_value(rs.getBigDecimal("raise_value"));
                 av.setNum_samples(rs.getInt("num_samples"));
                 av.setAlert_limit(rs.getInt("alert_limit"));
                 av.setHostname(rs.getString("hostname"));
+                av.setNode_id(rs.getInt("node_id"));
                 com.clavain.muninmxcd.v_alerts.add(av);
             }
         } catch (Exception ex)
@@ -229,10 +230,11 @@ public class Database {
                 av.setCondition(rs.getString("condition"));
                 av.setGraphName(rs.getString("graphname"));
                 av.setPluginName(rs.getString("pluginname"));
-                av.setRaise_value(rs.getInt("raise_value"));
+                av.setRaise_value(rs.getBigDecimal("raise_value"));
                 av.setNum_samples(rs.getInt("num_samples"));
                 av.setAlert_limit(rs.getInt("alert_limit"));
                 av.setHostname(rs.getString("hostname"));
+                av.setNode_id(rs.getInt("node_id"));
                 com.clavain.muninmxcd.v_alerts.add(av);
                 retval = true;
             }

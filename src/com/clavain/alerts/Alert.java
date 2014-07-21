@@ -8,6 +8,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static com.clavain.alerts.Methods.sendNotifications;
 import static com.clavain.utils.Generic.getNodeHostNameForMuninNode;
 import static com.clavain.utils.Generic.getUnixtime;
+import java.math.BigDecimal;
 /**
  *
  * @author enricokern
@@ -17,7 +18,7 @@ public class Alert {
     private String str_GraphName;
     private Integer node_id;
     private Integer alert_id;
-    private int raise_value;
+    private BigDecimal raise_value = new BigDecimal("0");
     private String condition;
     private Integer num_samples;
     // last alert (unix timestamp)
@@ -34,7 +35,7 @@ public class Alert {
      * @param p_timestamp timestamp
      * @param p_value value of metric
      */
-    public void addAndCheckSample(int p_timestamp,String p_Strvalue)
+    public void addAndCheckSample(int p_timestamp, BigDecimal p_Strvalue)
     {
         try
         {
@@ -42,9 +43,9 @@ public class Alert {
             boolean sendAlert = false;
             AlertValue av = new AlertValue();
             av.setTimestamp(p_timestamp);
-            av.setValue(Double.parseDouble(p_Strvalue));
+            av.setValue(p_Strvalue);
             v_values.add(av);
-            double p_value = av.getValue();
+            double p_value = av.getValue().doubleValue();
             // if we have higher sample count now, remove first
             if(v_values.size() > num_samples)
             {
@@ -56,37 +57,37 @@ public class Alert {
             // value equal given value? alert
             switch (condition) {
                 case "eq":
-                    if(p_value == raise_value)
+                    if(p_value == raise_value.doubleValue())
                     {
-                        this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " value is: " + p_value + " with alert condition => equal: "+raise_value);
+                        this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " Host: " + hostname + " value is: " + p_value + " with alert condition => equal: "+raise_value);
                         sendAlert = true;
                     }
                     break;
                 case "lt":
-                    if(p_value < raise_value)
+                    if(p_value < raise_value.doubleValue())
                     {
-                        this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " value is: " + p_value + " with alert condition => less then: "+raise_value);
+                        this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " Host: " + hostname + " value is: " + p_value + " with alert condition => less then: "+raise_value);
                         sendAlert = true;
                     }
                     break;     
                 case "gt":
-                    if(p_value > raise_value)
+                    if(p_value > raise_value.doubleValue())
                     {
-                        this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " value is: " + p_value + " with alert condition => greater then: "+raise_value);
+                        this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " Host: " + hostname + " value is: " + p_value + " with alert condition => greater then: "+raise_value);
                         sendAlert = true;
                     }
                     break; 
                 case "gtavg":
-                    if(avg > raise_value)
+                    if(avg > raise_value.doubleValue())
                     {
-                        this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " avg value is: " + avg + " with alert condition => avg of "+num_samples+" samples greater then: "+raise_value);
+                        this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " Host: " + hostname + " avg value is: " + avg + " with alert condition => avg of "+num_samples+" samples greater then: "+raise_value);
                         sendAlert = true;
                     }
                     break;  
                 case "ltavg":
-                    if(avg < raise_value)
-                    {
-                        this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " avg value is: " + avg + " with alert condition => avg of "+num_samples+" samples less then: "+raise_value);
+                    if(avg < raise_value.doubleValue())
+                    {           
+                        this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " Host: " + hostname + " avg value is: " + avg + " with alert condition => avg of "+num_samples+" samples less then: "+raise_value);
                         sendAlert = true;
                     }
                     break;                  
@@ -103,14 +104,16 @@ public class Alert {
                     int lalert = last_alert + alim;
                     if(lalert < curTime )
                     {
-                        sendNotifications(this);
                         setLast_alert(getUnixtime());
+                        sendNotifications(this);
+                        
                     }
                 }
                 else
                 {
-                    sendNotifications(this);
                     setLast_alert(getUnixtime());
+                    sendNotifications(this);
+                    
                 }
 
             }
@@ -125,7 +128,7 @@ public class Alert {
        double[] numbers = new double[v_values.size()];     
        double retval = 0;
        for (AlertValue l_av : v_values) {
-           retval += l_av.getValue();
+           retval += l_av.getValue().doubleValue();
        }
        double average = retval / v_values.size();
        return average;
@@ -190,14 +193,14 @@ public class Alert {
     /**
      * @return the raise_value
      */
-    public Integer getRaise_value() {
-        return raise_value;
+    public Double getRaise_value() {
+        return raise_value.doubleValue();
     }
 
     /**
      * @param raise_value the raise_value to set
      */
-    public void setRaise_value(Integer raise_value) {
+    public void setRaise_value(BigDecimal raise_value) {
         this.raise_value = raise_value;
     }
 

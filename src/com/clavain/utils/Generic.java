@@ -140,17 +140,20 @@ public class Generic {
         }
     }
     
-    public static Alert getAlertByNidPluginAndGraph(Integer p_nid,String p_strPlugin, String p_strGraph)
+    public static ArrayList<Alert> getAlertByNidPluginAndGraph(Integer p_nid,String p_strPlugin, String p_strGraph)
     {
+        ArrayList<Alert> retval = new ArrayList<>();
         for (Alert l_av : com.clavain.muninmxcd.v_alerts) {
-            if (l_av.getNode_id() == p_nid) {
-                if(l_av.getPluginName().equals(p_strPlugin) && l_av.getGraphName().equals(p_strGraph))
+            if (l_av.getNode_id().equals(p_nid)) {      
+                if(l_av.getPluginName().trim().equals(p_strPlugin) && l_av.getGraphName().trim().equals(p_strGraph))
                 {
-                    return l_av;
+                    retval.add(l_av);
                 }
             }
-        }  
-        return null;
+        }     
+
+        return retval;
+
     }
     
     /**
