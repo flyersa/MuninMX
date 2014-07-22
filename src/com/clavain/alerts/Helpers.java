@@ -5,6 +5,7 @@
 package com.clavain.alerts;
 
 import java.sql.ResultSet;
+import static com.clavain.utils.Database.dbAddAllAlertWithId;
 
 /**
  *
@@ -99,7 +100,17 @@ public class Helpers {
     public static boolean removeAlert(Integer p_alertId)
     {
         boolean retval = false;
-        
+        for (Alert l_av : com.clavain.muninmxcd.v_alerts) {
+            if(l_av.getAlert_id().equals(p_alertId))
+            {
+                retval = com.clavain.muninmxcd.v_alerts.remove(l_av);
+            }
+        }
         return retval;
     }
+    
+    public static boolean addAlert(Integer p_alertId)
+    {
+        return dbAddAllAlertWithId(p_alertId);
+    }    
 }

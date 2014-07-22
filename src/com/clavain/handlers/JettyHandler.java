@@ -316,6 +316,23 @@ public class JettyHandler extends AbstractHandler {
                     } finally { baseRequest.setHandled(true); }     
                 }  
             }
+            // add a alert
+            else if (l_lTargets.get(0).equals("addalert")) {
+                if (l_lTargets.size() < 1) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    try (PrintWriter writer = response.getWriter()) {
+                        writer.println("no alert id specified");
+                    } catch (Exception ex) {
+                        baseRequest.setHandled(true);
+                    } finally {
+                        baseRequest.setHandled(true);
+                    }
+                } else {
+                    try(PrintWriter writer = response.getWriter()) {
+                    writeJson(com.clavain.alerts.Helpers.addAlert(Integer.parseInt(l_lTargets.get(1).toString())),writer);
+                    } finally { baseRequest.setHandled(true); }     
+                }  
+            }            
              // send pushover test message
             else if(l_lTargets.get(0).equals("pushovertest"))
             {

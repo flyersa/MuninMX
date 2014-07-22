@@ -215,7 +215,7 @@ public class Database {
         }     
     }
     
-    public boolean dbAddAllAlertWithId(Integer p_aid)
+    public static boolean dbAddAllAlertWithId(Integer p_aid)
     {
         boolean retval = false;
         try 

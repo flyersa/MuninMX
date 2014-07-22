@@ -232,6 +232,20 @@ public class MuninNode
                         }
                     }
                 }
+                // check anyway if muninmxauth plugin is present
+                else
+                {
+                    os.println("config muninmxauth");
+                    Thread.sleep(100);
+                    String apw = in.readLine();
+                    if(!apw.trim().equals("# Unknown service"))
+                    {
+                        logger.error("no auth password given, but muninmxauth plugin present on " + this.getHostname());
+                        cs.close();
+                        return false;                        
+                    }
+                    s = in.readLine();
+                }
                 
                 // get list of available plugins
                 if(str_via.equals("unset"))
