@@ -30,8 +30,12 @@ public class Database {
 
     public static String clearStringForSQL(String p_str)
     {
-        String retval;
-        retval = p_str.replaceAll("'","");  
+        if(p_str == null)
+        {
+            return p_str;
+        }
+        String retval = p_str;
+        retval = retval.replaceAll("'","");  
         retval = retval.replaceAll("<",""); 
         retval = retval.replaceAll("`", "");
         retval = retval.replaceAll("´", "");
@@ -73,6 +77,7 @@ public class Database {
         } catch (Exception ex)
         {
             logger.error("Error in dbUpdatePlugin: " + ex.getLocalizedMessage());
+            ex.printStackTrace();
         }
     }
     

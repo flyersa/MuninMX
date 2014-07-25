@@ -205,12 +205,14 @@ public class muninmxcd {
             // starting API server
             new Thread(new JettyLauncher()).start();
             
+            int sleepTime = Integer.parseInt(p.getProperty("startup.sleeptime"));
+            int startupIterations = Integer.parseInt(p.getProperty("startup.iterations"));
             // scheduling jobs
             int i = 0;
             for (MuninNode it_mn : v_munin_nodes) {
-                if(i == 200)
+                if(i == startupIterations)
                 {
-                    Thread.sleep(20000);
+                    Thread.sleep(sleepTime);
                     i = 0;
                     logger.info("Waiting 20s for new scheduling slot");
                 }

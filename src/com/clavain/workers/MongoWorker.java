@@ -29,7 +29,9 @@ public class MongoWorker implements Runnable {
     @Override
     public void run() {
         
-        db = m.getDB("muninmx");
+        String dbName = com.clavain.muninmxcd.p.getProperty("mongo.dbname");
+        db = m.getDB(dbName);
+        
         logger.info("Started MongoWorker");
         String plugin = "";
         while(true)
