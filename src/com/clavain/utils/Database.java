@@ -27,6 +27,17 @@ import java.util.Iterator;
  * @author enricokern
  */
 public class Database {
+
+    public static String clearStringForSQL(String p_str)
+    {
+        String retval;
+        retval = p_str.replaceAll("'","");  
+        retval = retval.replaceAll("<",""); 
+        retval = retval.replaceAll("`", "");
+        retval = retval.replaceAll("´", "");
+        retval = retval.replaceAll(";", "");
+        return retval;
+    }    
     
     // Establish a connection to the database
     public static Connection connectToDatabase(Properties p)
@@ -52,11 +63,11 @@ public class Database {
         try {
             Connection conn = connectToDatabase(p);
             java.sql.Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * from node_plugins WHERE node_id = "+nodeId+" AND pluginname = '"+mp.getPluginName()+"'"); 
+            ResultSet rs = stmt.executeQuery("SELECT * from node_plugins WHERE node_id = "+nodeId+" AND pluginname = '"+clearStringForSQL(mp.getPluginName())+"'"); 
             if(rowCount(rs) < 1)
             {
                 logger.info("[Node " + nodeId + "] Adding Plugin: " + mp.getPluginName() + " to database");
-                stmt.executeUpdate("INSERT INTO node_plugins (node_id,pluginname,plugintitle,plugininfo,plugincategory) VALUES ("+nodeId+",'"+mp.getPluginName()+"','"+mp.getPluginTitle()+"','"+mp.getPluginInfo()+"','"+mp.getStr_PluginCategory()+"')");
+                stmt.executeUpdate("INSERT INTO node_plugins (node_id,pluginname,plugintitle,plugininfo,plugincategory) VALUES ("+nodeId+",'"+clearStringForSQL(mp.getPluginName())+"','"+clearStringForSQL(mp.getPluginTitle())+"','"+clearStringForSQL(mp.getPluginInfo())+"','"+clearStringForSQL(mp.getStr_PluginCategory())+"')");
             }
             conn.close();
         } catch (Exception ex)

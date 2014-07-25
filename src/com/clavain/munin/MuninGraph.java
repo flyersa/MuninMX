@@ -177,18 +177,29 @@ public class MuninGraph {
         {
             if(i_lastGraphFetch > 0)
             {
-                if(this.getGraphType().equals("COUNTER") || this.getGraphType().equals("DERIVE"))
-                {
-                    long curTime = com.clavain.utils.Generic.getUnixtime();
-                    long minTime = curTime - 140;
-                    if(i_lastGraphFetch < minTime)
+                if(this.getGraphType() != null)
+                {    
+                    if(this.getGraphType().equals("COUNTER") || this.getGraphType().equals("DERIVE"))
                     {
-                        com.clavain.muninmxcd.logger.warn("resetting graph "+this.getGraphName()+" from custom interval because no response for 140 seconds");
-                        this.is_init = false;
-                        this.bd_LastGraphValueCounter = new BigDecimal("0");
-                        this.bd_LastGraphValue = new BigDecimal("0");
-                        this.bd_GraphValue = new BigDecimal("0");
+                        long curTime = com.clavain.utils.Generic.getUnixtime();
+                        long minTime = curTime - 140;
+                        if(i_lastGraphFetch < minTime)
+                        {
+                            com.clavain.muninmxcd.logger.warn("resetting graph "+this.getGraphName()+" from custom interval because no response for 140 seconds");
+                            this.is_init = false;
+                            this.bd_LastGraphValueCounter = new BigDecimal("0");
+                            this.bd_LastGraphValue = new BigDecimal("0");
+                            this.bd_GraphValue = new BigDecimal("0");
+                        }
                     }
+                    else
+                    {
+                        is_init = true;
+                    }
+                }
+                else
+                {
+                    is_init = true;
                 }
             }
         }
