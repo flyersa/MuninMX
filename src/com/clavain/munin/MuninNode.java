@@ -27,8 +27,13 @@ import static com.clavain.utils.Database.dbUpdateAllPluginsForNode;
 import static com.clavain.utils.Database.dbUpdatePluginForNode;
 import static com.clavain.utils.Database.dbUpdateLastContact;
 import static com.clavain.utils.Generic.isPluginIgnored;
+import static com.clavain.utils.Database.dbTrackLogChangedForNode;
+import static com.clavain.utils.Database.dbUpdateNodeDistVerKernel;
 import com.clavain.utils.SocketCheck;
+import java.io.ByteArrayInputStream;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.zip.GZIPInputStream;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  *
@@ -53,6 +58,10 @@ public class MuninNode
   private int       last_plugin_load = 0;
   private String    authpw           = "";
   private boolean   is_init = false;
+  private boolean   track_pkg       = false;
+  private boolean   essentials      = false;
+  private int       last_pkg_update = 0;
+  private int       last_essentials_update = 0;
   private transient Socket lastSocket;
   private String    str_via = "unset";
   
@@ -281,10 +290,26 @@ public class MuninNode
                 {
                      
                     String l_strPlugin = l_st.nextToken();
+                    
+                    // check for track_pkg and muninmx essentials
+                    if(l_strPlugin.equals("muninmx_trackpkg"))
+                    {
+                        this.setTrack_pkg(true);
+                        continue;
+                    }
+                    
+                    // got essentials?
+                    if(l_strPlugin.equals("muninmx_essentials"))
+                    {
+                        this.setEssentials(true);
+                        continue;
+                    }                    
+                    
                     if(isPluginIgnored(l_strPlugin.toUpperCase()))
                     {
                         continue;
                     }
+                                      
                     l_mp.setPluginName(l_strPlugin);
 
                     os.println("config " + l_strPlugin);
@@ -502,6 +527,12 @@ public class MuninNode
             }
             this.i_lastRun = getUnixtime();
 
+            // track packages?
+            if(this.track_pkg)
+            {
+                updateTrackPackages(clientSocket);
+            }
+            
             // update graphs for all plugins
             Iterator it = this.getLoadedPlugins().iterator();
             while(it.hasNext())
@@ -540,6 +571,70 @@ public class MuninNode
         
     }
 
+    /*
+     * update track package log
+     */
+    private void updateTrackPackages(Socket p_socket)
+    {
+        // only try to update this once per hour
+        int curTime = getUnixtime();
+        int lalert = this.last_essentials_update + 3600;
+        if(lalert > curTime )
+        {  
+            return;
+        } 
+        
+        String decodestr = "";
+        try 
+        {
+            PrintStream os = new PrintStream( p_socket.getOutputStream() );
+            BufferedReader in = new BufferedReader(new InputStreamReader( p_socket.getInputStream()) );
+            os.println("config muninmx_trackpkg");
+            // skip first line
+            in.readLine();
+            // now receive base64 gzip stuff
+            decodestr = in.readLine();
+            byte[] decode = Base64.decodeBase64(decodestr);
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(decode); 
+            GZIPInputStream gzipInputStream;
+            gzipInputStream = new GZIPInputStream(byteArrayInputStream);
+
+            InputStreamReader inputStreamReader = new InputStreamReader(gzipInputStream);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader, 4);
+
+            String read;
+            String sum = bufferedReader.readLine();
+            if(sum == null) {  return; }  
+            String dist = bufferedReader.readLine();
+            String ver  = bufferedReader.readLine();
+            String kernel = bufferedReader.readLine();
+            if(dbTrackLogChangedForNode(sum, this.node_id))
+            {
+                
+                dbUpdateNodeDistVerKernel(sum,dist, ver, kernel, this.node_id);      
+                int i = 0;
+                while ((read = bufferedReader.readLine()) != null) 
+                {
+                     BasicDBObject doc = new BasicDBObject();
+                     doc.put("package", read);
+                     doc.put("time",getUnixtime());
+                     doc.put("node", this.node_id);
+                     doc.put("type","trackpkg");
+                     com.clavain.muninmxcd.mongo_essential_queue.add(doc);
+                     i++;
+                } 
+                logger.info("TrackPKG Updated for Node: " + this.getHostname() + " ("+dist+" " + ver + " " + kernel + "). tracking " + i + " packages"); 
+            }
+            this.last_essentials_update = getUnixtime();
+
+        } catch (Exception ex)
+        {
+            logger.error("Error in updateTrackPackages for Node " + this.getHostname() + " : " + ex.getLocalizedMessage());
+            logger.error("updateTrackPackages for Node " + this.getHostname() + " received: " + decodestr);
+            ex.printStackTrace();
+        }
+            
+    }
     
     /**
      * fill insertion queue with current graph values for each plugin
@@ -690,5 +785,33 @@ public class MuninNode
      */
     public void setAuthpw(String authpw) {
         this.authpw = authpw;
+    }
+
+    /**
+     * @return the track_pkg
+     */
+    public boolean isTrack_pkg() {
+        return track_pkg;
+    }
+
+    /**
+     * @param track_pkg the track_pkg to set
+     */
+    public void setTrack_pkg(boolean track_pkg) {
+        this.track_pkg = track_pkg;
+    }
+
+    /**
+     * @return the essentials
+     */
+    public boolean isEssentials() {
+        return essentials;
+    }
+
+    /**
+     * @param essentials the essentials to set
+     */
+    public void setEssentials(boolean essentials) {
+        this.essentials = essentials;
     }
 }

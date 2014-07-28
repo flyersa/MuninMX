@@ -62,6 +62,8 @@ public class Database {
         }
     }  
     
+    
+    
     public static void dbUpdatePluginForNode(Integer nodeId, MuninPlugin mp)
     {
         try {
@@ -328,6 +330,40 @@ public class Database {
             logger.error("Error in getMuninPluginFromCustomInterval: " + ex.getLocalizedMessage());
             ex.printStackTrace();
             retval = null;
+        }
+        return retval;
+    }
+    
+    
+    public static void dbUpdateNodeDistVerKernel(String p_sum,String p_dist, String p_ver, String p_kernel, int p_nodeid)
+    {
+        try
+        {
+            Connection conn = connectToDatabase(p);
+            java.sql.Statement stmt = conn.createStatement();  
+            stmt.executeUpdate("UPDATE nodes SET trackpkg_sum = '"+clearStringForSQL(p_sum)+"', track_dist = '"+clearStringForSQL(p_dist)+"', track_ver = '"+clearStringForSQL(p_ver)+"', track_kernel = '"+clearStringForSQL(p_kernel)+"', track_update = NOW() WHERE id = " + p_nodeid);
+            
+        } catch (Exception ex)
+        {
+            logger.error("Error in dbUpdateNodeDistVerKernel (Node: "+p_nodeid+") - " + ex.getLocalizedMessage());
+        }        
+    }
+    
+    public static boolean dbTrackLogChangedForNode(String p_sum, int p_nodeid)
+    {
+        boolean retval = false;
+        try
+        {
+            Connection conn = connectToDatabase(p);
+            java.sql.Statement stmt = conn.createStatement();  
+            ResultSet rs = stmt.executeQuery("SELECT id FROM nodes WHERE id = " + p_nodeid + " AND trackpkg_sum = '"+p_sum+"'"); 
+            if(rowCount(rs) < 1)
+            {
+                retval = true;
+            }
+        } catch (Exception ex)
+        {
+            logger.error("Error in dbTrackLogChangedForNode (Node: "+p_nodeid+" Sum: "+p_sum+" ) - " + ex.getLocalizedMessage());
         }
         return retval;
     }

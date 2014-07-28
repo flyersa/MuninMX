@@ -6,7 +6,7 @@ package com.clavain.alerts.ratelimiter;
 
 import static com.clavain.muninmxcd.logger;
 import com.clavain.alerts.msg.ShortTextMessage;
-import static com.clavain.alerts.Methods.sendSMSMessage;
+import static com.clavain.alerts.Methods.sendTTSMessage;
 import com.clavain.alerts.msg.TTSMessage;
 /**
  *
@@ -22,7 +22,7 @@ public class TTSLimiter implements Runnable {
             try {
                 TTSMessage tts = com.clavain.muninmxcd.notification_tts_queue.take();
                 logger.info("[TTSLimiter] Processing Message to: " + tts.getMobile() + " MSG: " + tts.getMessage());
-                sendSMSMessage(tts.getMessage(), tts.getMobile());
+                sendTTSMessage(tts.getMessage(), tts.getMobile());
                 Thread.sleep(500);
             } catch (Exception ex)
             {

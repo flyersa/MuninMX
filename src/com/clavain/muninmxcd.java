@@ -21,6 +21,7 @@ import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
 import com.clavain.executors.MongoExecutor;
+import com.clavain.executors.MongoEssentialExecutor;
 import com.clavain.handlers.JettyLauncher;
 import com.clavain.munin.MuninNode;
 import com.clavain.munin.MuninPlugin;
@@ -59,6 +60,7 @@ public class muninmxcd {
     public static Logger logger     = Logger.getRootLogger();
     public static Properties p      = null;
     public static LinkedBlockingQueue<BasicDBObject> mongo_queue = new LinkedBlockingQueue<BasicDBObject>();
+    public static LinkedBlockingQueue<BasicDBObject> mongo_essential_queue = new LinkedBlockingQueue<BasicDBObject>();
     public static boolean logMore   = false;
     public static MongoClient m;
     public static DB db;
@@ -228,6 +230,9 @@ public class muninmxcd {
             
             // starting MongoExecutor
             new Thread(new MongoExecutor()).start();
+        
+            // starting MongoExecutor for Package Tracking and Essential Informations
+            new Thread(new MongoEssentialExecutor()).start();            
             
             // starting newnodewatcher
             new Thread(new NewNodeWatcher()).start();
