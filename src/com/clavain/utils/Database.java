@@ -11,6 +11,7 @@ import com.clavain.munin.MuninGraph;
 import com.clavain.munin.MuninNode;
 import com.clavain.munin.MuninPlugin;
 import static com.clavain.muninmxcd.logger;
+import static com.clavain.muninmxcd.m;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -21,6 +22,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static com.clavain.muninmxcd.p;
 import static com.clavain.utils.Generic.getMuninNode;
 import static com.clavain.utils.Quartz.scheduleCustomIntervalJob;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
 import java.util.Iterator;
 /**
  *
@@ -368,6 +372,24 @@ public class Database {
         return retval;
     }
     
+    public static void removeOldPackageTrack(int p_nodeid)
+    {
+        try {
+            
+            logger.info("Purging Package Logs for NodeID: " + p_nodeid);
+            DB db;
+            String dbName = com.clavain.muninmxcd.p.getProperty("mongo.dbessentials");
+            db = m.getDB(dbName);
+            DBCollection col = db.getCollection("trackpkg");   
+            BasicDBObject query = new BasicDBObject();
+            query.append("node", p_nodeid);
+            col.remove(query);
+        } catch (Exception ex)
+        {
+            logger.error("Error in removeOldPackageTrack: " + ex.getLocalizedMessage());
+        }
+    }
+    
     private static int rowCount(ResultSet rs) throws SQLException
     {
         int rsCount = 0;
@@ -377,5 +399,5 @@ public class Database {
             rsCount = rsCount + 1;
         }//end while
         return rsCount;
-    }    
+    } 
 }

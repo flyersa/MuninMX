@@ -29,6 +29,7 @@ import static com.clavain.utils.Database.dbUpdateLastContact;
 import static com.clavain.utils.Generic.isPluginIgnored;
 import static com.clavain.utils.Database.dbTrackLogChangedForNode;
 import static com.clavain.utils.Database.dbUpdateNodeDistVerKernel;
+import static com.clavain.utils.Database.removeOldPackageTrack;
 import com.clavain.utils.SocketCheck;
 import java.io.ByteArrayInputStream;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -610,6 +611,8 @@ public class MuninNode
             String kernel = bufferedReader.readLine();
             if(dbTrackLogChangedForNode(sum, this.node_id))
             {
+                // purge old logs
+                removeOldPackageTrack(this.node_id);
                 
                 dbUpdateNodeDistVerKernel(sum,dist, ver, kernel, this.node_id);      
                 int i = 0;

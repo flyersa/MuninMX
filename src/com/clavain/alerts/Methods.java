@@ -32,6 +32,8 @@ import static com.clavain.muninmxcd.logger;
 import static com.clavain.muninmxcd.p;
 import static com.clavain.alerts.Helpers.*;
 import static com.clavain.utils.Generic.sendPost;
+import java.sql.Connection;
+import static com.clavain.utils.Database.connectToDatabase;
 
 /**
  *
@@ -43,7 +45,8 @@ public class Methods {
         Integer aid = alert.getAlert_id();
 
         try {
-            java.sql.Statement stmt = com.clavain.muninmxcd.conn.createStatement();
+            Connection conn = connectToDatabase(com.clavain.muninmxcd.p);
+            java.sql.Statement stmt = conn.createStatement();
 
             // SELECT alert_contacts.id as nid, contacts.* FROM `alert_contacts` LEFT JOIN contacts ON alert_contacts.contact_id = contacts.id WHERE alert_id = 1
             ResultSet rs = stmt.executeQuery("SELECT alert_contacts.id as nid, contacts.*,contacts.id AS contactId FROM `alert_contacts` LEFT JOIN contacts ON alert_contacts.contact_id = contacts.id WHERE alert_id = " + aid);
@@ -106,7 +109,7 @@ public class Methods {
                     }
                 }
             }
-
+        conn.close();
         } catch (Exception ex) {
             logger.error("Error in sendNotifications for CID " + aid + " : " + ex.getLocalizedMessage());
             ex.printStackTrace();
