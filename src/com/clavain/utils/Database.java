@@ -26,6 +26,8 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 /**
  *
  * @author enricokern
@@ -55,7 +57,7 @@ public class Database {
             logger.debug("Connecting to MySQL");
             conn =
                DriverManager.getConnection("jdbc:mysql://"+p.getProperty("mysql.host")+":"+p.getProperty("mysql.port")+"/"+p.getProperty("mysql.db")+"?" +
-                                           "user="+p.getProperty("mysql.user")+"&password="+p.getProperty("mysql.pass")+"");
+                                           "user="+p.getProperty("mysql.user")+"&password="+p.getProperty("mysql.pass")+"&autoReconnect=true&failOverReadOnly=false&maxReconnects=10");
 
             return(conn);
 
@@ -214,6 +216,8 @@ public class Database {
         try 
         {
             Connection conn = connectToDatabase(p);
+            conn.setReadOnly(true);
+            //
             java.sql.Statement stmt = conn.createStatement();  
             ResultSet rs = stmt.executeQuery("SELECT alerts.*,nodes.hostname FROM alerts LEFT JOIN nodes ON alerts.node_id = nodes.id");
             while(rs.next())
@@ -230,9 +234,16 @@ public class Database {
                 av.setNode_id(rs.getInt("node_id"));
                 com.clavain.muninmxcd.v_alerts.add(av);
             }
+            logger.info("Startup for Alerts Done");
         } catch (Exception ex)
         {
-            logger.error("Startup for Alerts failed." + ex.getLocalizedMessage());
+            logger.error("Startup for Alerts failed. retrying in 60 seconds" + ex.getLocalizedMessage());
+            try {
+                Thread.sleep(60000);
+                dbAddAllAlerts();
+            } catch (InterruptedException ex1) {
+                logger.error("Startup for Alerts restart failed");
+            }
             ex.printStackTrace();
         }     
     }

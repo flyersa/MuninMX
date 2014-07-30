@@ -49,8 +49,9 @@ public class MongoEssentialWorker implements Runnable {
                     }
                     else
                     {
-                        // TODO:
-                        // - store netstat, memory and so on
+                        col = db.getCollection(doc.getString("node")+"_ess");
+                        doc.removeField("node");
+                        doc.removeField("type");
                     }
 
                     col.insert(doc);

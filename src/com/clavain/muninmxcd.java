@@ -295,7 +295,7 @@ public class muninmxcd {
             logger.info("Connecting to MySQL");
             conn =
                DriverManager.getConnection("jdbc:mysql://"+p.getProperty("mysql.host")+":"+p.getProperty("mysql.port")+"/"+p.getProperty("mysql.db")+"?" +
-                                           "user="+p.getProperty("mysql.user")+"&password="+p.getProperty("mysql.pass")+"");
+                                           "user="+p.getProperty("mysql.user")+"&password="+p.getProperty("mysql.pass")+"&autoReconnect=true&failOverReadOnly=false&maxReconnects=10");
 
             return(true);
 

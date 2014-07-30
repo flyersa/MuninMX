@@ -534,6 +534,12 @@ public class MuninNode
                 updateTrackPackages(clientSocket);
             }
             
+            // gather essentials?
+            if(this.essentials)
+            {
+                updateEssentials(clientSocket);
+            }
+            
             // update graphs for all plugins
             Iterator it = this.getLoadedPlugins().iterator();
             while(it.hasNext())
@@ -572,6 +578,35 @@ public class MuninNode
         
     }
 
+    
+    /*
+     * update essentials
+     */
+    private void updateEssentials(Socket p_socket)
+    {
+        String decodestr = "";
+        try {
+            PrintStream os = new PrintStream( p_socket.getOutputStream() );
+            BufferedReader in = new BufferedReader(new InputStreamReader( p_socket.getInputStream()) );
+            os.println("config muninmx_essentials");
+            // skip first line
+            in.readLine();            
+            decodestr = in.readLine();
+            BasicDBObject doc = new BasicDBObject();
+            doc.put("data", decodestr);
+            doc.put("time",getUnixtime());
+            doc.put("node", this.node_id);
+            doc.put("type","essential");
+            com.clavain.muninmxcd.mongo_essential_queue.add(doc);  
+            logger.info("Essentials Updated for Node: " + this.getHostname() + ": received base64 (length): " + decodestr.length());
+        } catch (Exception ex)
+        {
+            logger.error("Error in updateEssentials for Node " + this.getHostname() + " : " + ex.getLocalizedMessage());
+            logger.error("updateEssentials for Node " + this.getHostname() + " received: " + decodestr);
+            ex.printStackTrace();     
+        }
+    }
+    
     /*
      * update track package log
      */
