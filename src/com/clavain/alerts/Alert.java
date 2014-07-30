@@ -45,47 +45,47 @@ public class Alert {
             av.setTimestamp(p_timestamp);
             av.setValue(p_Strvalue);
             v_values.add(av);
-            double p_value = av.getValue().doubleValue();
+            BigDecimal p_value = av.getValue();
             // if we have higher sample count now, remove first
             if(v_values.size() > num_samples)
             {
                 v_values.remove(0);
             }
-
+            
             // now do the check magic
-            double avg = returnAvg();
+            BigDecimal avg = returnAvgBig();
             // value equal given value? alert
             switch (condition) {
                 case "eq":
-                    if(p_value == raise_value.doubleValue())
+                    if(p_value.compareTo(raise_value) == 0)
                     {
                         this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " Host: " + hostname + " value is: " + p_value + " with alert condition => equal: "+raise_value);
                         sendAlert = true;
                     }
                     break;
                 case "lt":
-                    if(p_value < raise_value.doubleValue())
+                    if(p_value.compareTo(raise_value) == -1)
                     {
                         this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " Host: " + hostname + " value is: " + p_value + " with alert condition => less then: "+raise_value);
                         sendAlert = true;
                     }
                     break;     
                 case "gt":
-                    if(p_value > raise_value.doubleValue())
+                    if(p_value.compareTo(raise_value) == 1)
                     {
                         this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " Host: " + hostname + " value is: " + p_value + " with alert condition => greater then: "+raise_value);
                         sendAlert = true;
                     }
                     break; 
                 case "gtavg":
-                    if(avg > raise_value.doubleValue())
+                    if(avg.compareTo(raise_value) == 1)
                     {
                         this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " Host: " + hostname + " avg value is: " + avg + " with alert condition => avg of "+num_samples+" samples greater then: "+raise_value);
                         sendAlert = true;
                     }
                     break;  
                 case "ltavg":
-                    if(avg < raise_value.doubleValue())
+                   if(avg.compareTo(raise_value) == -1)
                     {           
                         this.setAlertMsg("Plugin: " + str_PluginName + " Graph: " + str_GraphName + " Host: " + hostname + " avg value is: " + avg + " with alert condition => avg of "+num_samples+" samples less then: "+raise_value);
                         sendAlert = true;
@@ -121,6 +121,18 @@ public class Alert {
         {
             com.clavain.muninmxcd.logger.error("Error in Alert/addAndCheckSample (recv value: "+p_Strvalue+"): " + ex.getLocalizedMessage());
         }
+    }
+    
+    private BigDecimal returnAvgBig() {
+       BigDecimal numbers = new BigDecimal(v_values.size());     
+       BigDecimal retval = new BigDecimal(0);
+       for (AlertValue l_av : v_values) {
+          // retval += l_av.doubleValue();
+          retval = retval.add(l_av.getValue());
+       }
+       BigDecimal average = retval;
+       average = average.divide(new BigDecimal(v_values.size()));
+       return average;
     }
     
     private double returnAvg()

@@ -140,7 +140,7 @@ public class Methods {
                 email.setSSLOnConnect(false);
             }
             email.setFrom(p.getProperty("mailserver.from"));
-            email.setSubject(title);
+            email.setSubject("[MuninMX]" + title);
             email.setMsg(message);
             email.addTo(emailaddy);
             email.send();
