@@ -9,6 +9,7 @@ import static com.clavain.alerts.Methods.sendNotifications;
 import static com.clavain.utils.Generic.getNodeHostNameForMuninNode;
 import static com.clavain.utils.Generic.getUnixtime;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 /**
  *
  * @author enricokern
@@ -131,7 +132,7 @@ public class Alert {
           retval = retval.add(l_av.getValue());
        }
        BigDecimal average = retval;
-       average = average.divide(new BigDecimal(v_values.size()));
+       average = average.divide(new BigDecimal(v_values.size()),2,RoundingMode.HALF_UP);
        return average;
     }
     

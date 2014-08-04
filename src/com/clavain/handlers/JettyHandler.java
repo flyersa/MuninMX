@@ -28,6 +28,7 @@ import static com.clavain.muninmxcd.v_munin_nodes;
 import static com.clavain.utils.Quartz.*;
 import java.net.URLDecoder;
 import static com.clavain.alerts.Methods.sendPushOverMessage;
+import com.clavain.rca.Analyzer;
 
 /**
  *
@@ -332,8 +333,34 @@ public class JettyHandler extends AbstractHandler {
                     writeJson(com.clavain.alerts.Helpers.addAlert(Integer.parseInt(l_lTargets.get(1).toString())),writer);
                     } finally { baseRequest.setHandled(true); }     
                 }  
-            }            
-             // send pushover test message
+            }  
+            // add a rca job
+            else if (l_lTargets.get(0).equals("addrca")) {
+                if (l_lTargets.size() < 1) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    try (PrintWriter writer = response.getWriter()) {
+                        writer.println("no rca id specified");
+                    } catch (Exception ex) {
+                        baseRequest.setHandled(true);
+                    } finally {
+                        baseRequest.setHandled(true);
+                    }
+                } else {
+                    try(PrintWriter writer = response.getWriter()) {
+                        Analyzer rca = new Analyzer(Integer.parseInt(l_lTargets.get(1).toString()));
+                        if(rca.configureFromDatabase())
+                        {
+                            new Thread(rca).start();
+                            writeJson(true,writer);
+                        }
+                        else
+                        {
+                             writeJson(false,writer);
+                        }
+                    } finally { baseRequest.setHandled(true); }     
+                }  
+            }              
+            // send pushover test message
             else if(l_lTargets.get(0).equals("pushovertest"))
             {
                if(l_lTargets.size() < 4)

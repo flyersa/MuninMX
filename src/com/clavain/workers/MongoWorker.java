@@ -23,8 +23,8 @@ import java.util.Iterator;
  * @author enricokern
  */
 public class MongoWorker implements Runnable {
-    private static DB db;
-    private static DBCollection col;
+    private DB db;
+    private DBCollection col;
     
     @Override
     public void run() {

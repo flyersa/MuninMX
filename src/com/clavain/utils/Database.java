@@ -7,6 +7,7 @@
 package com.clavain.utils;
 
 import com.clavain.alerts.Alert;
+import com.clavain.json.User;
 import com.clavain.munin.MuninGraph;
 import com.clavain.munin.MuninNode;
 import com.clavain.munin.MuninPlugin;
@@ -68,7 +69,19 @@ public class Database {
         }
     }  
     
-    
+    public static void dbUpdateRcaStatus(int p_rcaId,String p_status)
+    {
+        try {
+         Connection conn = connectToDatabase(p);   
+         java.sql.Statement stmt = conn.createStatement();
+         stmt.executeUpdate("UPDATE nodes SET status = '"+p_status+"' WHERE rcaId = '" + p_rcaId+"'");
+         conn.close();
+        } catch (Exception ex)
+        {
+            logger.error("[RCA] Error in dbUpdateRcaStatus: " + ex.getLocalizedMessage());
+            ex.printStackTrace();
+        }        
+    }
     
     public static void dbUpdatePluginForNode(Integer nodeId, MuninPlugin mp)
     {
@@ -125,6 +138,31 @@ public class Database {
         }
     }
     
+    public static User getUserFromDatabase(Integer user_id)
+    {
+        User luser = null;
+        try
+        {
+            Connection conn = connectToDatabase(p);
+            java.sql.Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM users WHERE id = " + user_id);
+            while(rs.next())
+            {   
+                luser = new User();
+                luser.setAccessgroup(rs.getString("accessgroup"));
+                luser.setUsername(rs.getString("username"));
+                luser.setUserrole(rs.getString("userrole"));
+                luser.setUser_id(rs.getInt("id"));
+            }
+        } catch (Exception ex)
+        {
+            return null;
+        }
+        
+        return luser;
+    }
+    
+    
     public static MuninNode getMuninNodeFromDatabase(Integer nodeId)
     {
         MuninNode l_mn = new MuninNode();
@@ -144,6 +182,7 @@ public class Database {
                 l_mn.setQueryInterval(rs.getInt("query_interval"));  
                 l_mn.setStr_via(rs.getString("via_host"));
                 l_mn.setAuthpw(rs.getString("authpw"));
+                l_mn.setGroup(rs.getString("groupname"));
             }  
             conn.close();
         } catch (Exception ex)

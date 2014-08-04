@@ -25,6 +25,7 @@ import com.clavain.executors.MongoEssentialExecutor;
 import com.clavain.handlers.JettyLauncher;
 import com.clavain.munin.MuninNode;
 import com.clavain.munin.MuninPlugin;
+import com.clavain.rca.RcaResultSet;
 import com.clavain.workers.PluginUpdater;
 import java.io.FileInputStream;
 import java.sql.Connection;
@@ -77,7 +78,9 @@ public class muninmxcd {
     public static LinkedBlockingQueue<ShortTextMessage> notification_sms_queue = new LinkedBlockingQueue<ShortTextMessage>();
     public static LinkedBlockingQueue<TTSMessage> notification_tts_queue = new LinkedBlockingQueue<TTSMessage>();  
     public static CopyOnWriteArrayList<Alert> v_alerts = new CopyOnWriteArrayList<>();
-    
+    // RCA
+    public static CopyOnWriteArrayList<RcaResultSet> v_rcaresults = new CopyOnWriteArrayList<>();
+    public static int rcajobs_running = 0;
     /**
      * @param args the command line arguments
      */
