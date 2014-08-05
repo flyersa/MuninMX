@@ -347,19 +347,61 @@ public class JettyHandler extends AbstractHandler {
                     }
                 } else {
                     try(PrintWriter writer = response.getWriter()) {
-                        Analyzer rca = new Analyzer(Integer.parseInt(l_lTargets.get(1).toString()));
-                        if(rca.configureFromDatabase())
+                        boolean found = false;
+                        for (Analyzer l_rca : com.clavain.muninmxcd.v_analyzer) {
+                            if(l_rca.getRcaId().equals(l_lTargets.get(1).toString()))
+                            {
+                                found = true;
+                            }
+                        }
+                        if(!found)
                         {
-                            new Thread(rca).start();
-                            writeJson(true,writer);
+                            Analyzer rca = new Analyzer(l_lTargets.get(1).toString());
+                            if(rca.configureFromDatabase())
+                            {
+                                new Thread(rca).start();
+                                writeJson(true,writer);
+                            }
+                            else
+                            {
+                                 writeJson(false,writer);
+                            }
                         }
                         else
                         {
-                             writeJson(false,writer);
+                            writeJson(true,writer);
                         }
                     } finally { baseRequest.setHandled(true); }     
                 }  
-            }              
+            }  
+            // rca status
+            else if (l_lTargets.get(0).equals("rcastatus")) {
+                if (l_lTargets.size() < 1) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    try (PrintWriter writer = response.getWriter()) {
+                        writer.println("no rca id specified");
+                    } catch (Exception ex) {
+                        baseRequest.setHandled(true);
+                    } finally {
+                        baseRequest.setHandled(true);
+                    }
+                } else {
+                    try(PrintWriter writer = response.getWriter()) {
+                        boolean found = false;
+                        for (Analyzer l_rca : com.clavain.muninmxcd.v_analyzer) {
+                            if(l_rca.getRcaId().equals(l_lTargets.get(1).toString()))
+                            {
+                                writeJson(l_rca,writer);
+                                found = true;
+                            }
+                        }
+                        if(!found)
+                        {
+                            writeJson(false,writer);  
+                        }
+                    } finally { baseRequest.setHandled(true); }     
+                }  
+            }                 
             // send pushover test message
             else if(l_lTargets.get(0).equals("pushovertest"))
             {
