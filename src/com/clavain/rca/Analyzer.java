@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 import static com.clavain.utils.Generic.getMuninNode;
 import static com.clavain.utils.Generic.getUnixtime;
+import static com.clavain.rca.Methods.*;
+import java.math.BigDecimal;
 
 /**
  *
@@ -40,7 +42,11 @@ public class Analyzer implements Runnable {
     private ArrayList<MuninNode> rca_nodes = new ArrayList<>();
     private ArrayList<RcaResult> results = new ArrayList<>();
     private int starttime   = 0;
-    private int percentage = 10;
+    private BigDecimal percentage = new BigDecimal("10");
+    private int querydays = 4;
+    private int start = 0;
+    private int end = 0;
+    private int day = 86400;
     
     public Analyzer(String p_rcaId) {
         rcaId = p_rcaId;
@@ -57,7 +63,10 @@ public class Analyzer implements Runnable {
                 setCategory(rs.getString("categoryfilter"));
                 setUser_id((Integer) rs.getInt("user_id"));
                 setSinglehost(rs.getInt("singlehost"));
-                percentage = rs.getInt("percentage");
+                percentage = rs.getBigDecimal("percentage");
+                querydays = rs.getInt("querydays") + 1;
+                start = rs.getInt("start_time");
+                end = rs.getInt("end_time");
                 retval = true;
                 setStatus("Analyzer configured. Waiting for open slot...");
             }
@@ -200,11 +209,53 @@ public class Analyzer implements Runnable {
             
             // BRAIN DAMAGE INCOMING, FOR FOR FOR FOR WHOOOOHOOO!
             for (MuninNode mn : rca_nodes) {
+                pluginLoop:
                 for (MuninPlugin mp : mn.getPluginList())
                 {
+                    if(category != null)
+                    {
+                        if(!mp.getStr_PluginCategory().equals(category))
+                        {
+                            continue pluginLoop;
+                        }
+                    }
                     for (MuninGraph mg : mp.getGraphs())
                     {
+                        status = "Analyzing " + mn.getNodename() + " - " + mp.getPluginName().toUpperCase() + "/" + mg.getGraphName();
+                        BigDecimal t = getTotalForPluginAndGraph(mp.getPluginName(), mg.getGraphName(), start, end, mn.getUser_id(), mn.getNode_id());
+                        int iterations = 1;
+                        int p_start = start;
+                        int p_end = end;
+                        ArrayList<BigDecimal> values = new ArrayList<>();
+                        while(iterations < this.querydays)
+                        {
+                            p_start = start-(day*iterations);
+                            p_end = end-(day*iterations); 
+                            values.add(getTotalForPluginAndGraph(mp.getPluginName(), mg.getGraphName(), p_start, p_end, mn.getUser_id(), mn.getNode_id()));
+                            iterations++;
+                        }
+                        BigDecimal avg = returnAvgBig(values);
+                        BigDecimal foundPercentage = ReversePercentageFromValues(avg,t);
+                        // did we receive negative value, then convert to positive?
+                        if(foundPercentage.signum() == -1)
+                        {
+                            foundPercentage = foundPercentage.abs();
+                        }
                         
+                        // match
+                        if(foundPercentage.compareTo(percentage) == 0 || foundPercentage.compareTo(percentage) == +1)
+                        {
+                            RcaResult result = new RcaResult();
+                            result.setNodeId(mn.getNode_id());
+                            result.setGraphName(mg.getGraphName());
+                            result.setPluginName(mp.getPluginName());
+                            result.setPercentage(foundPercentage);
+                            result.setPluginLabel(mp.getPluginLabel());
+                            result.setGraphLabel(mg.getGraphLabel());
+                            results.add(result);
+                            status = "Added Result for node "+mn.getNodename()+" with match of "+foundPercentage+"% on " + mp.getPluginLabel().toUpperCase()+"/"+mg.getGraphLabel();
+                            logger.info("[RCA] " + getRcaId() + "Added Result for node "+mn.getNodename()+" with match of "+foundPercentage+"% on " + mp.getPluginLabel().toUpperCase()+"/"+mg.getGraphLabel());
+                        }
                     }
                 }
             }

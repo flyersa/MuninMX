@@ -20,11 +20,11 @@ import static com.clavain.muninmxcd.p;
  */
 public class Methods {
 
-    private DB db;
-    private DBCollection col;
-    private DBCursor cursor;
+    private static DB db;
+    private static DBCollection col;
+    private static DBCursor cursor;
 
-    public BigDecimal getTotalForPluginAndGraph(String p_plugin, String p_graph, int start, int end, int userId, int nodeId) {
+    public static BigDecimal getTotalForPluginAndGraph(String p_plugin, String p_graph, int start, int end, int userId, int nodeId) {
         BigDecimal total = new BigDecimal("0");
         try {
             String dbName = com.clavain.muninmxcd.p.getProperty("mongo.dbname");
@@ -60,14 +60,14 @@ public class Methods {
     }
 
     // A = average, b = total
-    private BigDecimal ReversePercentageFromValues(BigDecimal a, BigDecimal b) {
+    public static BigDecimal ReversePercentageFromValues(BigDecimal a, BigDecimal b) {
         a = a.multiply(new BigDecimal(100));
         a = a.divide(b, 2, RoundingMode.HALF_UP);
         a = new BigDecimal(100).subtract(a);
         return a;
     }
 
-    private BigDecimal returnAvgBig(ArrayList<BigDecimal> p_values) {
+    public static BigDecimal returnAvgBig(ArrayList<BigDecimal> p_values) {
         BigDecimal numbers = new BigDecimal(p_values.size());
         BigDecimal retval = new BigDecimal(0);
         for (BigDecimal l_av : p_values) {
