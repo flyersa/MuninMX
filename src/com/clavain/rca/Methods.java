@@ -25,7 +25,7 @@ public class Methods {
     private static DBCursor cursor;
 
     public static BigDecimal getTotalForPluginAndGraph(String p_plugin, String p_graph, int start, int end, int userId, int nodeId) {
-        BigDecimal total = new BigDecimal("0");
+        BigDecimal total = new BigDecimal("0").setScale(2,RoundingMode.HALF_UP);
         try {
             String dbName = com.clavain.muninmxcd.p.getProperty("mongo.dbname");
             db = m.getDB(dbName);
@@ -46,6 +46,7 @@ public class Methods {
                 while (cursor.hasNext()) {
 
                     BigDecimal val = new BigDecimal(cursor.next().get("value").toString());
+                    val.setScale(2,RoundingMode.HALF_UP);
                     total = total.add(val);
                 }
             } finally {
@@ -61,16 +62,27 @@ public class Methods {
 
     // A = average, b = total
     public static BigDecimal ReversePercentageFromValues(BigDecimal a, BigDecimal b) {
-        a = a.multiply(new BigDecimal(100));
-        a = a.divide(b, 2, RoundingMode.HALF_UP);
-        a = new BigDecimal(100).subtract(a);
-        return a;
+        try {
+            a.setScale(2,RoundingMode.HALF_UP);
+            b.setScale(2,RoundingMode.HALF_UP);
+            a = a.multiply(new BigDecimal(100).setScale(2,RoundingMode.HALF_UP));
+            
+            a = a.divide(b, 2, RoundingMode.HALF_UP);
+            a = new BigDecimal(100).setScale(2,RoundingMode.HALF_UP).subtract(a);
+            return a;
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+            logger.error("Error in ReversePercentageFromValues: a = " + a + " b = " + b);
+            return new BigDecimal("0");
+        }
     }
 
     public static BigDecimal returnAvgBig(ArrayList<BigDecimal> p_values) {
         BigDecimal numbers = new BigDecimal(p_values.size());
-        BigDecimal retval = new BigDecimal(0);
+        BigDecimal retval = new BigDecimal(0).setScale(2,RoundingMode.HALF_UP);
         for (BigDecimal l_av : p_values) {
+            l_av.setScale(2,RoundingMode.HALF_UP);
             // retval += l_av.doubleValue();
             retval = retval.add(l_av);
         }

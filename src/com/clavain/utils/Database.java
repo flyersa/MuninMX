@@ -75,7 +75,7 @@ public class Database {
         try {
          Connection conn = connectToDatabase(p);   
          java.sql.Statement stmt = conn.createStatement();
-         stmt.executeUpdate("UPDATE rca SET finished = 1 WHERE rcaId = '" + p_rcaId+"'");
+         stmt.executeUpdate("UPDATE rca SET is_finished = 1 WHERE rcaId = '" + p_rcaId+"'");
          conn.close();
         } catch (Exception ex)
         {

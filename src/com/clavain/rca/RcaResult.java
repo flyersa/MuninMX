@@ -12,7 +12,6 @@ import java.math.BigDecimal;
  */
 public class RcaResult {
     private String pluginName   =   "";
-    private String pluginLabel   =   "";
     private String  graphLabel   =   "";
      private String  graphName   =   "";
     private BigDecimal percentage = new BigDecimal("0");
@@ -87,20 +86,6 @@ public class RcaResult {
      */
     public void setNodeId(int nodeId) {
         this.nodeId = nodeId;
-    }
-
-    /**
-     * @return the pluginLabel
-     */
-    public String getPluginLabel() {
-        return pluginLabel;
-    }
-
-    /**
-     * @param pluginLabel the pluginLabel to set
-     */
-    public void setPluginLabel(String pluginLabel) {
-        this.pluginLabel = pluginLabel;
     }
 
     /**

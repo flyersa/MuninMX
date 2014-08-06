@@ -231,11 +231,23 @@ public class Analyzer implements Runnable {
                         {
                             p_start = start-(day*iterations);
                             p_end = end-(day*iterations); 
-                            values.add(getTotalForPluginAndGraph(mp.getPluginName(), mg.getGraphName(), p_start, p_end, mn.getUser_id(), mn.getNode_id()));
+                            BigDecimal adding = getTotalForPluginAndGraph(mp.getPluginName(), mg.getGraphName(), p_start, p_end, mn.getUser_id(), mn.getNode_id());
+                            logger.info("[RCA] iteration found: " + adding + " Total: "+t+" query: " + mp.getPluginName() +" / " + mg.getGraphName() + " start: " + p_start+ " end: " + p_end) ;
+                            values.add(adding);
                             iterations++;
                         }
                         BigDecimal avg = returnAvgBig(values);
-                        BigDecimal foundPercentage = ReversePercentageFromValues(avg,t);
+                        
+                        BigDecimal foundPercentage;
+                        if(avg.compareTo(t) == 1)
+                        {
+                            foundPercentage = ReversePercentageFromValues(t,avg);
+                        }
+                        else
+                        {
+                             foundPercentage = ReversePercentageFromValues(avg,t);
+                        }
+                        logger.info("[RCA] avg: " + avg + " total: " + t + " foundPercentage " + foundPercentage + " query: " + mp.getPluginName() +" / " + mg.getGraphName());
                         // did we receive negative value, then convert to positive?
                         if(foundPercentage.signum() == -1)
                         {
@@ -247,14 +259,14 @@ public class Analyzer implements Runnable {
                         {
                             RcaResult result = new RcaResult();
                             result.setNodeId(mn.getNode_id());
+                            result.setNodeName(mn.getNodename());
                             result.setGraphName(mg.getGraphName());
                             result.setPluginName(mp.getPluginName());
                             result.setPercentage(foundPercentage);
-                            result.setPluginLabel(mp.getPluginLabel());
                             result.setGraphLabel(mg.getGraphLabel());
                             results.add(result);
-                            status = "Added Result for node "+mn.getNodename()+" with match of "+foundPercentage+"% on " + mp.getPluginLabel().toUpperCase()+"/"+mg.getGraphLabel();
-                            logger.info("[RCA] " + getRcaId() + "Added Result for node "+mn.getNodename()+" with match of "+foundPercentage+"% on " + mp.getPluginLabel().toUpperCase()+"/"+mg.getGraphLabel());
+                            status = "Added Result for node "+mn.getNodename()+" with match of "+foundPercentage+"% on " + mp.getPluginName().toUpperCase()+"/"+mg.getGraphLabel();
+                            logger.info("[RCA] " + getRcaId() + " Added Result for node "+mn.getNodename()+" with match of "+foundPercentage+"% on " + mp.getPluginName().toUpperCase()+"/"+mg.getGraphLabel());
                         }
                     }
                 }
@@ -272,6 +284,7 @@ public class Analyzer implements Runnable {
         
         com.clavain.muninmxcd.rcajobs_running = com.clavain.muninmxcd.rcajobs_running - 1;
         dbSetRcaFinished(getRcaId());
+        status = "Analyzis complete";
         setFinished(true);
         setRunning(false);
     }
