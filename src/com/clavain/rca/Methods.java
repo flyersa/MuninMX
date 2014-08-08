@@ -59,6 +59,44 @@ public class Methods {
         }
         return total;
     }
+    
+    
+   public static BigDecimal getAverageForPluginAndGraph(String p_plugin, String p_graph, int start, int end, int userId, int nodeId) {
+        BigDecimal total = new BigDecimal("0").setScale(2,RoundingMode.HALF_UP);
+        try {
+            String dbName = com.clavain.muninmxcd.p.getProperty("mongo.dbname");
+            db = m.getDB(dbName);
+            col = db.getCollection(userId + "_" + nodeId);
+
+
+            BasicDBObject query = new BasicDBObject("plugin", p_plugin);
+            query.append("graph", p_graph);
+
+            BasicDBObject gtlt = new BasicDBObject("$gt", start);
+            gtlt.append("$lt", end);
+            query.append("recv", gtlt);
+
+            cursor = col.find(query);
+
+            int iterations = 0;
+            try {
+                while (cursor.hasNext()) {
+
+                    BigDecimal val = new BigDecimal(cursor.next().get("value").toString());
+                    val.setScale(2,RoundingMode.HALF_UP);
+                    total = total.add(val);
+                    iterations++;
+                }
+            } finally {
+                cursor.close();
+            }
+             total = total.divide(new BigDecimal(iterations).setScale(2), 2, RoundingMode.HALF_UP);
+        } catch (Exception ex) {
+            logger.error("[RCA] Error in getAverageForPluginAndGraph: " + ex.getLocalizedMessage());
+            ex.printStackTrace();
+        }
+        return total;
+    }    
 
     // A = average, b = total
     public static BigDecimal ReversePercentageFromValues(BigDecimal a, BigDecimal b) {
@@ -80,6 +118,7 @@ public class Methods {
 
     public static BigDecimal returnAvgBig(ArrayList<BigDecimal> p_values) {
         BigDecimal numbers = new BigDecimal(p_values.size());
+        numbers.setScale(2);
         BigDecimal retval = new BigDecimal(0).setScale(2,RoundingMode.HALF_UP);
         for (BigDecimal l_av : p_values) {
             l_av.setScale(2,RoundingMode.HALF_UP);
@@ -87,7 +126,8 @@ public class Methods {
             retval = retval.add(l_av);
         }
         BigDecimal average = retval;
-        average = average.divide(new BigDecimal(p_values.size()), 2, RoundingMode.HALF_UP);
+       
+        average = average.divide(numbers, 2, RoundingMode.HALF_UP);
         return average;
     }
 }

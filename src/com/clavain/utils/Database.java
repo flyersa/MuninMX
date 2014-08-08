@@ -21,11 +21,15 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import static com.clavain.muninmxcd.p;
+import com.clavain.rca.Analyzer;
 import static com.clavain.utils.Generic.getMuninNode;
 import static com.clavain.utils.Quartz.scheduleCustomIntervalJob;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import java.lang.reflect.Modifier;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -82,6 +86,22 @@ public class Database {
             logger.error("[RCA] Error in dbSetRcaFinished: " + ex.getLocalizedMessage());
             ex.printStackTrace();
         }        
+    }
+    
+    public static void dbSetRcaOutput(Analyzer p_analyzer)
+    {
+        try {
+         Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create();
+         String json = gson.toJson(p_analyzer);
+         Connection conn = connectToDatabase(p);   
+         java.sql.Statement stmt = conn.createStatement();
+         stmt.executeUpdate("UPDATE rca SET `output` = '"+json+"' WHERE rcaId = '" + p_analyzer.getRcaId()+"'");
+         conn.close();
+        } catch (Exception ex)
+        {
+            logger.error("[RCA] Error in dbSetRcaOutput: " + ex.getLocalizedMessage());
+            ex.printStackTrace();
+        }          
     }
     
     public static void dbUpdatePluginForNode(Integer nodeId, MuninPlugin mp)

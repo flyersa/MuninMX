@@ -13,11 +13,12 @@ import java.math.BigDecimal;
 public class RcaResult {
     private String pluginName   =   "";
     private String  graphLabel   =   "";
-     private String  graphName   =   "";
+    private String  graphName   =   "";
     private BigDecimal percentage = new BigDecimal("0");
     private String nodeName = "";
     private int nodeId = 0;
-
+    private BigDecimal inputAverage = new BigDecimal("0");
+    private BigDecimal daysAverage = new BigDecimal("0");
     /**
      * @return the pluginName
      */
@@ -100,6 +101,34 @@ public class RcaResult {
      */
     public void setGraphLabel(String graphLabel) {
         this.graphLabel = graphLabel;
+    }
+
+    /**
+     * @return the inputAverage
+     */
+    public BigDecimal getInputAverage() {
+        return inputAverage;
+    }
+
+    /**
+     * @param inputAverage the inputAverage to set
+     */
+    public void setInputAverage(BigDecimal inputAverage) {
+        this.inputAverage = inputAverage;
+    }
+
+    /**
+     * @return the daysAverage
+     */
+    public BigDecimal getDaysAverage() {
+        return daysAverage;
+    }
+
+    /**
+     * @param daysAverage the daysAverage to set
+     */
+    public void setDaysAverage(BigDecimal daysAverage) {
+        this.daysAverage = daysAverage;
     }
     
 }
