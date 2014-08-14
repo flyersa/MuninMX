@@ -233,6 +233,10 @@ public class Analyzer implements Runnable {
                         status = "Analyzing " + mn.getNodename() + " - " + mp.getPluginName().toUpperCase() + "/" + mg.getGraphName();
                         //BigDecimal t = getTotalForPluginAndGraph(mp.getPluginName(), mg.getGraphName(), start, end, mn.getUser_id(), mn.getNode_id());
                         BigDecimal t = getAverageForPluginAndGraph(mp.getPluginName(), mg.getGraphName(), start, end, mn.getUser_id(), mn.getNode_id());
+                        if(t == null)
+                        {
+                            continue graphLoop;
+                        }
                         // skip if average is below threeshold
                         if(t.compareTo(threshold) == 0 || t.compareTo(threshold) == -1)                        
                         {
@@ -242,13 +246,21 @@ public class Analyzer implements Runnable {
                         int p_start = start;
                         int p_end = end;
                         ArrayList<BigDecimal> values = new ArrayList<>();
+                        iterationLoop:
                         while(iterations < this.querydays)
                         {
                             p_start = start-(day*iterations);
                             p_end = end-(day*iterations); 
                             BigDecimal adding = getAverageForPluginAndGraph(mp.getPluginName(), mg.getGraphName(), p_start, p_end, mn.getUser_id(), mn.getNode_id());
+                            if(adding == null)
+                            {
+                                //
+                            }
+                            else
+                            {
+                                values.add(adding);    
+                            }
                             //logger.info("[RCA] iteration found: " + adding + " Total: "+t+" query: " + mp.getPluginName() +" / " + mg.getGraphName() + " start: " + p_start+ " end: " + p_end) ;
-                            values.add(adding);
                             iterations++;
                         }
                         BigDecimal avg = returnAvgBig(values);

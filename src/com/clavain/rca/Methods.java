@@ -77,7 +77,7 @@ public class Methods {
             query.append("recv", gtlt);
 
             cursor = col.find(query);
-
+            
             int iterations = 0;
             try {
                 while (cursor.hasNext()) {
@@ -90,9 +90,14 @@ public class Methods {
             } finally {
                 cursor.close();
             }
-             total = total.divide(new BigDecimal(iterations).setScale(2), 2, RoundingMode.HALF_UP);
+            if(iterations == 0)
+            {
+                logger.warn("[RCA] Iterations is 0 for Query=> Plugin: " + p_plugin + " Graph: " + p_graph + " start: " + start + " end: " + end + " userid: " + userId + " nodeId:" + nodeId);
+                return null;
+            }
+            total = total.divide(new BigDecimal(iterations).setScale(2), 2, RoundingMode.HALF_UP);
         } catch (Exception ex) {
-            logger.error("[RCA] Error in getAverageForPluginAndGraph: " + ex.getLocalizedMessage());
+            logger.error("[RCA] Error in getAverageForPluginAndGraph: " + ex.getLocalizedMessage() + " Query=> Plugin: " + p_plugin + " Graph: " + p_graph + " start: " + start + " end: " + end + " userid: " + userId + " nodeId:" + nodeId);
             ex.printStackTrace();
         }
         return total;
