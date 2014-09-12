@@ -41,13 +41,11 @@ public class MuninJob implements Job {
                       keepMeRunning = false;
                       logger.warn("interrupting JobRunner for node: " + nodeId);
                       runner.interrupt();
-                      runner.suspend();
-                      runner.interrupt();
+                      Thread.sleep(500);
+                      
                       if(runner.isAlive())
                       {
                           logger.warn("final call, stopping JobRunner after 2 unsuccessfull interrupts for node " + nodeId);
-                          runner.stop();
-                          Thread.sleep(100);
                           runner.stop();
                       }
                       return;

@@ -43,6 +43,7 @@ public class JobRunner extends Thread implements Runnable {
         } 
         catch (ThreadDeath td)
         {
+            mn = null;
             logger.info(mn.getHostname() + "Monitoring job stopped - Terminated - " + td.getMessage()); 
             return;
         }
