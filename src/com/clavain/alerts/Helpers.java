@@ -4,9 +4,11 @@
  */
 package com.clavain.alerts;
 
+import static com.clavain.muninmxcd.p;
 import java.sql.ResultSet;
 import static com.clavain.utils.Database.dbAddAllAlertWithId;
-
+import static com.clavain.utils.Database.connectToDatabase;
+import java.sql.Connection;
 /**
  *
  * @author enricokern
@@ -15,8 +17,10 @@ public class Helpers {
 
     public static void withdrawSMSTicket(Integer user_id) {
         try {
-            java.sql.Statement stmt = com.clavain.muninmxcd.conn.createStatement();
-            stmt.executeUpdate("UPDATE users SET sms_tickets = sms_tickets -1 WHERE id = " + user_id);
+         Connection conn = connectToDatabase(p);   
+         java.sql.Statement stmt = conn.createStatement();
+         stmt.executeUpdate("UPDATE users SET sms_tickets = sms_tickets -1 WHERE id = " + user_id);
+         conn.close();
         } catch (Exception ex) {
             com.clavain.muninmxcd.logger.error("Error in withdrawSMS Ticket for User: " + user_id + " with: " + ex.getLocalizedMessage());
         }
@@ -26,8 +30,10 @@ public class Helpers {
     {
         try 
         {
-            java.sql.Statement stmt = com.clavain.muninmxcd.conn.createStatement();
+            Connection conn = connectToDatabase(p);   
+            java.sql.Statement stmt = conn.createStatement();            
             stmt.executeUpdate("UPDATE users SET tts_tickets = tts_tickets -1 WHERE id = " + user_id);
+            conn.close();
         } catch (Exception ex)
         {
             com.clavain.muninmxcd.logger.error("Error in withdrawTTS Ticket for User: " + user_id + " with: " + ex.getLocalizedMessage());
@@ -38,12 +44,13 @@ public class Helpers {
     {
         try 
         {
-            java.sql.Statement stmt = com.clavain.muninmxcd.conn.createStatement();
+            Connection conn = connectToDatabase(p);   
+            java.sql.Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * from users WHERE id = " + user_id);
             while(rs.next())
             {
                 return rs.getInt("tts_tickets");
-            }
+            }    
         } catch (Exception ex)
         {
             com.clavain.muninmxcd.logger.error("Error in retrieving TTSTicket Count for User: " + user_id + " with: " + ex.getLocalizedMessage());
@@ -55,7 +62,8 @@ public class Helpers {
     {
         try 
         {
-            java.sql.Statement stmt = com.clavain.muninmxcd.conn.createStatement();
+            Connection conn = connectToDatabase(p);   
+            java.sql.Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * from users WHERE id = " + user_id);
             while(rs.next())
             {
@@ -72,7 +80,8 @@ public class Helpers {
     {
         try 
         {
-            java.sql.Statement stmt = com.clavain.muninmxcd.conn.createStatement();
+            Connection conn = connectToDatabase(p);   
+            java.sql.Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * from users WHERE id = " + user_id);
             while(rs.next())
             {
@@ -89,8 +98,10 @@ public class Helpers {
     {
         try 
         {
-            java.sql.Statement stmt = com.clavain.muninmxcd.conn.createStatement();
+            Connection conn = connectToDatabase(p);   
+            java.sql.Statement stmt = conn.createStatement();
             stmt.executeUpdate("INSERT INTO notification_log (cid,contact_id,msg,msg_type) VALUES ("+cid+","+contact_id+",'"+msg+"','"+msg_type+"')");
+            conn.close();
         } catch (Exception ex)
         {
             com.clavain.muninmxcd.logger.error("Error in updateNotification Log : " + ex.getLocalizedMessage());
