@@ -122,17 +122,24 @@ public class Methods {
     }
 
     public static BigDecimal returnAvgBig(ArrayList<BigDecimal> p_values) {
-        BigDecimal numbers = new BigDecimal(p_values.size());
-        numbers.setScale(2);
-        BigDecimal retval = new BigDecimal(0).setScale(2,RoundingMode.HALF_UP);
-        for (BigDecimal l_av : p_values) {
-            l_av.setScale(2,RoundingMode.HALF_UP);
-            // retval += l_av.doubleValue();
-            retval = retval.add(l_av);
+        try
+        {
+            BigDecimal numbers = new BigDecimal(p_values.size());
+            numbers.setScale(2);
+            BigDecimal retval = new BigDecimal(0).setScale(2,RoundingMode.HALF_UP);
+            for (BigDecimal l_av : p_values) {
+                l_av.setScale(2,RoundingMode.HALF_UP);
+                // retval += l_av.doubleValue();
+                retval = retval.add(l_av);
+            }
+            BigDecimal average = retval;
+
+            average = average.divide(numbers, 2, RoundingMode.HALF_UP);
+            return average;
+        } catch (Exception ex)
+        {
+            logger.warn("Exception in returnAvgBig, ignoring with null." + ex.getLocalizedMessage());
+            return null;
         }
-        BigDecimal average = retval;
-       
-        average = average.divide(numbers, 2, RoundingMode.HALF_UP);
-        return average;
     }
 }

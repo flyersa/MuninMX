@@ -264,6 +264,10 @@ public class Analyzer implements Runnable {
                             iterations++;
                         }
                         BigDecimal avg = returnAvgBig(values);
+                        if(avg == null)
+                        {
+                            continue graphLoop;
+                        }
                         
                         BigDecimal foundPercentage;
                         if(avg.compareTo(t) == 1)
