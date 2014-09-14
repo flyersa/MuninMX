@@ -633,6 +633,8 @@ public class MuninNode
             in.readLine();
             // now receive base64 gzip stuff
             decodestr = in.readLine();
+            // and read .
+            in.readLine();
             byte[] decode = Base64.decodeBase64(decodestr);
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(decode); 
             GZIPInputStream gzipInputStream;
