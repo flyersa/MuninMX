@@ -590,9 +590,18 @@ public class MuninNode
             PrintStream os = new PrintStream( p_socket.getOutputStream() );
             BufferedReader in = new BufferedReader(new InputStreamReader( p_socket.getInputStream()) );
             os.println("config muninmx_essentials");
-            // skip first line
-            in.readLine();            
+            
+            // skip first line if starts with #
             decodestr = in.readLine();
+            if(decodestr.startsWith("#"))
+            {
+                decodestr = in.readLine();    
+            }
+
+            if(decodestr.equals("."))
+            {
+                decodestr = in.readLine();    
+            }             
             BasicDBObject doc = new BasicDBObject();
             doc.put("data", decodestr);
             doc.put("time",getUnixtime());
@@ -629,11 +638,17 @@ public class MuninNode
             PrintStream os = new PrintStream( p_socket.getOutputStream() );
             BufferedReader in = new BufferedReader(new InputStreamReader( p_socket.getInputStream()) );
             os.println("config muninmx_trackpkg");
-            // skip first line
-            in.readLine();
-            // now receive base64 gzip stuff
+            // skip first line if starts with #
             decodestr = in.readLine();
+            if(decodestr.startsWith("#"))
+            {
+                decodestr = in.readLine();    
+            }
 
+            if(decodestr.equals("."))
+            {
+                decodestr = in.readLine();    
+            }   
             byte[] decode = Base64.decodeBase64(decodestr);
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(decode); 
             GZIPInputStream gzipInputStream;
