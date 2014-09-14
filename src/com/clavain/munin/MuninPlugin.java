@@ -190,7 +190,10 @@ public class MuninPlugin {
                     }                        
                     return;
                 }
-                logger.info(p_strHostname + " Received from (fetch " + this.getPluginName()+") Result: " + line);
+                if(logMore)
+                {                
+                    logger.info(p_strHostname + " Received from (fetch " + this.getPluginName()+") Result: " + line);
+                }
                 //System.out.println(line);
                 if(line.contains("value") && !line.contains("#"))
                 {
