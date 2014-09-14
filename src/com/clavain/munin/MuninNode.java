@@ -319,7 +319,7 @@ public class MuninNode
                     int l_iGraphsFound = 0;  
                     int l_iTmp         = 0;
                     MuninGraph  l_mg = new MuninGraph();                    
-                    
+                    l_mg.setQueryInterval(this.getQueryInterval());
                     while ((l_tmp = in.readLine()) != null) 
                     {
                       if(l_tmp.startsWith("."))
@@ -348,6 +348,7 @@ public class MuninNode
                            {
                                l_mp.addGraph(l_mg);
                                l_mg = new MuninGraph();
+                               l_mg.setQueryInterval(this.getQueryInterval());
                            }
                            l_mg.setGraphName(l_strName);
                            l_mg.setGraphLabel(l_strValue);

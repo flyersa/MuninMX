@@ -167,6 +167,11 @@ public class MuninPlugin {
             PrintStream os = new PrintStream( getCsMuninSocket().getOutputStream() );
             BufferedReader in = new BufferedReader(new InputStreamReader( getCsMuninSocket().getInputStream()) );
             os.println("fetch " + this.getPluginName());
+            Thread.sleep(100);
+            if(logMore)
+            {
+                logger.info("Executed:  fetch " + this.getPluginName());
+            }
             String line;
             while((line = in.readLine()) != null) {
                 if(line.startsWith("."))
@@ -182,6 +187,7 @@ public class MuninPlugin {
                     }                        
                     return;
                 }
+                logger.info("Received from (fetch " + this.getPluginName()+") Result: " + line);
                 //System.out.println(line);
                 if(line.contains("value") && !line.contains("#"))
                 {
@@ -201,8 +207,17 @@ public class MuninPlugin {
                         {
                            l_mg.setIntervalIsSeconds(true); 
                         }
+                        
+                        if(logMore)
+                        {
+                            logger.info(p_strHostname + " - equalcheck - Given: " + l_mg.getGraphName() + " required: " + l_graphName);
+                        }                          
                         if(l_mg.getGraphName().equals(l_graphName))
-                        {                  
+                        {    
+                            if(logMore)
+                            {
+                                logger.info(p_strHostname + " - equalcheck passed - Given: " + l_mg.getGraphName() + " found: " + l_graphName);
+                            }                                
                             if(l_value.trim().length() < 1)
                             {
                                 l_mg.setGraphValue("0");
@@ -212,6 +227,10 @@ public class MuninPlugin {
                                 // check....
                                 try
                                 {
+                                    if(logMore)
+                                    {
+                                        logger.info(p_strHostname + " - graph: " + l_mg.getGraphName() + " calling setGraphValue with value: " + l_value.trim());
+                                    }                                    
                                     l_mg.setGraphValue(l_value.trim());
                                     // check if we need to add alert value as well
                                     if(l_mg.isInit())
