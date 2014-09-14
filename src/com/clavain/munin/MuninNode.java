@@ -600,6 +600,8 @@ public class MuninNode
             doc.put("type","essential");
             com.clavain.muninmxcd.mongo_essential_queue.add(doc);  
             logger.info("Essentials Updated for Node: " + this.getHostname() + ": received base64 (length): " + decodestr.length());
+            // read following .
+            in.readLine();
         } catch (Exception ex)
         {
             logger.error("Error in updateEssentials for Node " + this.getHostname() + " : " + ex.getLocalizedMessage());

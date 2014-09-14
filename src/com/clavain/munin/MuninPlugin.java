@@ -167,15 +167,18 @@ public class MuninPlugin {
             PrintStream os = new PrintStream( getCsMuninSocket().getOutputStream() );
             BufferedReader in = new BufferedReader(new InputStreamReader( getCsMuninSocket().getInputStream()) );
             os.println("fetch " + this.getPluginName());
-            Thread.sleep(100);
             if(logMore)
             {
-                logger.info("Executed:  fetch " + this.getPluginName());
+                logger.info(p_strHostname + " Executed:  fetch " + this.getPluginName());
             }
-            String line;
+            String line;    
             while((line = in.readLine()) != null) {
                 if(line.startsWith("."))
                 {
+                    if(logMore)
+                    {
+                        logger.info(p_strHostname + " Executed:  fetch " + this.getPluginName() + " BUT INSTEAD GOT . AS RESULT");
+                    }                    
                     // close wait fix for single mode
                     if(customId != null)
                     {
@@ -187,7 +190,7 @@ public class MuninPlugin {
                     }                        
                     return;
                 }
-                logger.info("Received from (fetch " + this.getPluginName()+") Result: " + line);
+                logger.info(p_strHostname + " Received from (fetch " + this.getPluginName()+") Result: " + line);
                 //System.out.println(line);
                 if(line.contains("value") && !line.contains("#"))
                 {
@@ -255,6 +258,7 @@ public class MuninPlugin {
                     }
                 }
             }
+
             if(customId != null)
             {
                 os.close();
