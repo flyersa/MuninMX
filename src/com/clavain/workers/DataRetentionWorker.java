@@ -75,7 +75,7 @@ public class DataRetentionWorker implements Runnable {
                             {
                                 logger.info("[DataRetentionWorker] result for " + l_mn.getHostname() + " from user: " + rs.getString("username") + " affected for deletion: " + cursor.count() + " matchtime: lt " + matchtime);
                             }
-                            //col.remove(query);
+                            col.remove(query);
                             
                             // now ESSENTIALS
                             query = new BasicDBObject("time", new BasicDBObject("$lt", matchtime));
@@ -87,7 +87,8 @@ public class DataRetentionWorker implements Runnable {
                             {
                                 logger.info("[DataRetentionWorker] ESSENTIAL result for " + l_mn.getHostname() + " from user: " + rs.getString("username") + " affected for deletion: " + cursor.count() + " matchtime: lt " + matchtime);
                             }                            
-                            //col.remove(query);
+                            col.remove(query);
+                            
                           }
                        }
                    }
