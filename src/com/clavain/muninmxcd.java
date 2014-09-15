@@ -81,6 +81,7 @@ public class muninmxcd {
     // RCA
     public static CopyOnWriteArrayList<Analyzer> v_analyzer = new CopyOnWriteArrayList<>();
     public static int rcajobs_running = 0;
+    public static int maxnodes = 100000;
     /**
      * @param args the command line arguments
      */

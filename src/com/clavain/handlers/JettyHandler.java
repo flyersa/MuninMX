@@ -84,6 +84,16 @@ public class JettyHandler extends AbstractHandler {
                         baseRequest.setHandled(true);
                     }
                 }
+                else if (l_lTargets.get(1).equals("maxnodes")) {
+
+                    try (PrintWriter writer = response.getWriter()) {
+                        writeJson(com.clavain.muninmxcd.maxnodes, writer);
+                    } catch (Exception ex) {
+                        baseRequest.setHandled(true);
+                    } finally {
+                        baseRequest.setHandled(true);
+                    }
+                }                
             } // query a node
             else if (l_lTargets.get(0).equals("node")) {
                 //logger.debug(l_lTargets.size());
@@ -169,28 +179,43 @@ public class JettyHandler extends AbstractHandler {
                         baseRequest.setHandled(true);
                     }
                 } else {
-                    Integer nodeId = Integer.parseInt(l_lTargets.get(1).toString());
-                    MuninNode l_mn = getMuninNodeFromDatabase(nodeId);
-                    unscheduleCheck(l_mn.getNode_id().toString(), l_mn.getUser_id().toString());
-                    com.clavain.muninmxcd.v_munin_nodes.add(l_mn);
-                    if (scheduleJob(l_mn)) {
-                        try (PrintWriter writer = response.getWriter()) {
-                            writeJson(true, writer);
-                        } catch (Exception ex) {
-                            baseRequest.setHandled(true);
-                        } finally {
-                            baseRequest.setHandled(true);
-                        }
-                    } else {
-                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    // check if we have space for nodes
+                    if(com.clavain.muninmxcd.v_munin_nodes.size() < com.clavain.muninmxcd.maxnodes)
+                    {
+                        Integer nodeId = Integer.parseInt(l_lTargets.get(1).toString());
+                        MuninNode l_mn = getMuninNodeFromDatabase(nodeId);
+                        unscheduleCheck(l_mn.getNode_id().toString(), l_mn.getUser_id().toString());
+                        com.clavain.muninmxcd.v_munin_nodes.add(l_mn);
+                        if (scheduleJob(l_mn)) {
+                            try (PrintWriter writer = response.getWriter()) {
+                                writeJson(true, writer);
+                            } catch (Exception ex) {
+                                baseRequest.setHandled(true);
+                            } finally {
+                                baseRequest.setHandled(true);
+                            }
+                        } else {
+                            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
+                            try (PrintWriter writer = response.getWriter()) {
+                                writer.println("queue error");
+                            } catch (Exception ex) {
+                                baseRequest.setHandled(true);
+                            } finally {
+                                baseRequest.setHandled(true);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                         try (PrintWriter writer = response.getWriter()) {
-                            writer.println("queue error");
+                            writer.println("License Error. Maximum Number of nodes in license reached");
                         } catch (Exception ex) {
                             baseRequest.setHandled(true);
                         } finally {
-                            baseRequest.setHandled(true);
-                        }
+                           baseRequest.setHandled(true);
+                        }                        
                     }
                 }
             } // add a new customjob
