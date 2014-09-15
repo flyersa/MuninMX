@@ -469,7 +469,7 @@ public class MuninNode
         }
         
         int iCurTime = getUnixtime();
-        int iPluginRefreshTime = last_plugin_load + 86400;
+        int iPluginRefreshTime = last_plugin_load + Integer.parseInt(p.getProperty("plugin.refreshtime"));
         try {
             // update plugins, maybe we have some new :)
             // double try to load plugins if fail
