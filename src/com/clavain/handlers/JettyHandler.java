@@ -93,7 +93,39 @@ public class JettyHandler extends AbstractHandler {
                     } finally {
                         baseRequest.setHandled(true);
                     }
-                }                
+                } 
+                else if (l_lTargets.get(1).equals("ttsenabled")) {
+                    try (PrintWriter writer = response.getWriter()) {
+                        if(com.clavain.muninmxcd.p.getProperty("tts.enable").equals("true"))
+                        {
+                            writeJson(true, writer);
+                        }
+                        else
+                        {
+                            writeJson(false, writer);
+                        }
+                    } catch (Exception ex) {
+                        baseRequest.setHandled(true);
+                    } finally {
+                        baseRequest.setHandled(true);
+                    }
+                }   
+                else if (l_lTargets.get(1).equals("smsenabled")) {
+                    try (PrintWriter writer = response.getWriter()) {
+                        if(com.clavain.muninmxcd.p.getProperty("sms.enable").equals("true"))
+                        {
+                            writeJson(true, writer);
+                        }
+                        else
+                        {
+                            writeJson(false, writer);
+                        }
+                    } catch (Exception ex) {
+                        baseRequest.setHandled(true);
+                    } finally {
+                        baseRequest.setHandled(true);
+                    }
+                }                     
             } // query a node
             else if (l_lTargets.get(0).equals("node")) {
                 //logger.debug(l_lTargets.size());

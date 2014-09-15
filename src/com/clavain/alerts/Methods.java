@@ -218,26 +218,46 @@ public class Methods {
 
     public static boolean sendSMSMessage(String message, String mobile_nr) {
         boolean retval = false;
-        // http://smsflatrate.net/schnittstelle.php?key=386594884a42f5063f18a7e8289d211a&to=00491734631526&type=4&text=ALERT:%20Notification%20Test%20(HTTPS)%20-%20HTTP%20Critical-%20OK%20String%20not%20found
+        // http://smsflatrate.net/schnittstelle.php?key=ff&to=00491734631526&type=4&text=ALERT:%20Notification%20Test%20(HTTPS)%20-%20HTTP%20Critical-%20OK%20String%20not%20found
         try {
-            String key = p.getProperty("smsflatrate.key");
-            String gw = p.getProperty("smsflatrate.gw");
-            if (mobile_nr.startsWith("0049")) {
-                gw = p.getProperty("smsflatrate.gwde");
-            }
-            String msg = URLEncoder.encode(message);
-            URL url = new URL("http://smsflatrate.net/schnittstelle.php?key=" + key + "&to=" + mobile_nr + "&type=" + gw + "&text=" + msg);
-            URLConnection conn = url.openConnection();
-            // open the stream and put it into BufferedReader
-            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String inputLine;
-            String resp = "";
-            while ((inputLine = br.readLine()) != null) {
-                resp = inputLine;
-            }
-            //conn.getContent();      
-            if (resp.trim().equals("100")) {
-                retval = true;
+            if(p.getProperty("sms.provider").equals("smsflatrate"))
+            {
+                String key = p.getProperty("smsflatrate.key");
+                String gw = p.getProperty("smsflatrate.gw");
+                if (mobile_nr.startsWith("0049")) {
+                    gw = p.getProperty("smsflatrate.gwde");
+                }
+                String msg = URLEncoder.encode(message);
+                URL url = new URL("http://smsflatrate.net/schnittstelle.php?key=" + key + "&to=" + mobile_nr + "&type=" + gw + "&text=" + msg);
+                URLConnection conn = url.openConnection();
+                // open the stream and put it into BufferedReader
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String inputLine;
+                String resp = "";
+                while ((inputLine = br.readLine()) != null) {
+                    resp = inputLine;
+                }
+                //conn.getContent();      
+                if (resp.trim().equals("100")) {
+                    retval = true;
+                }
+            } else if(p.getProperty("sms.provider").equals("bulksms"))
+            {
+                // http://bulksms.de:5567/eapi/submission/send_sms/2/2.0?username=ff&password=yt89hjfff98&message=Hey%20Fucker&msisdn=491734631526
+                String msg = URLEncoder.encode(message);
+                URL url = new URL("http://bulksms.de:5567/eapi/submission/send_sms/2/2.0?username=" + p.getProperty("bulksms.username") + "&password=" + p.getProperty("bulksms.password") + "&message=" + msg+"&msisdn="+mobile_nr);
+                URLConnection conn = url.openConnection();
+                // open the stream and put it into BufferedReader
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String inputLine;
+                String resp = "";
+                while ((inputLine = br.readLine()) != null) {
+                    resp = inputLine;
+                }
+                //conn.getContent();      
+                if (resp.trim().startsWith("0")) {
+                    retval = true;
+                }                
             }
         } catch (Exception ex) {
             retval = false;
