@@ -53,6 +53,7 @@ import org.quartz.impl.StdSchedulerFactory;
 import static com.clavain.utils.Generic.getUnixtime;
 import com.clavain.workers.NewNodeWatcher;
 import static com.clavain.utils.Database.dbScheduleAllCustomJobs;
+import com.clavain.workers.DataRetentionWorker;
 /**
  *
  * @author enricokern
@@ -250,6 +251,9 @@ public class muninmxcd {
 
             // TTS Limiter
             new Thread(new TTSLimiter()).start();            
+            
+            // start DataRetention Worker
+            new Thread(new DataRetentionWorker()).start();
             
             int curTime;
             int toTime;
