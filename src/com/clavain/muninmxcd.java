@@ -54,6 +54,10 @@ import static com.clavain.utils.Generic.getUnixtime;
 import com.clavain.workers.NewNodeWatcher;
 import static com.clavain.utils.Database.dbScheduleAllCustomJobs;
 import com.clavain.workers.DataRetentionWorker;
+import com.clavain.workers.lic.CryptoUtils;
+import com.clavain.workers.lic.License;
+import java.io.File;
+import java.io.ObjectInputStream;
 /**
  *
  * @author enricokern
@@ -156,6 +160,99 @@ public class muninmxcd {
             System.err.println("Failed to Init basic logging infastructure: " + ex.getLocalizedMessage());
             System.exit(1);
         }
+       
+      
+       try
+       {
+           String l1 = "\"E~>l^FNm%";
+           String l2 = "4|$18m";
+           String logK = l1 + l2;
+           File folder = new File("licenses");
+           CryptoUtils crypt = new CryptoUtils();
+           FileInputStream fin;
+           ObjectInputStream ois;
+           CopyOnWriteArrayList<License> v_lics = new CopyOnWriteArrayList<>();
+           
+           if(!new File("licenses/muninmx.license").exists())
+           {
+               System.err.println("licenses/muninmx.license missing");
+               logger.fatal("licenses/muninmx.license missing");
+               System.exit(1);
+           }
+           else
+           {
+            crypt.decrypt(logK, new File("licenses/muninmx.license"), new File("licenses/muninmx.license.tmp"));
+            fin = new FileInputStream(new File("licenses/muninmx.license.tmp"));
+            ois = new ObjectInputStream(fin);
+            License lic;
+            lic = (License) ois.readObject();
+            new File("licenses/muninmx.license.tmp").delete();
+            if(lic.getLicenseType().equals("demo"))
+            {
+                maxnodes =  lic.getNum_nodes();
+                logger.info("---- DEMO MODUS -----");
+                // expired?
+                if(lic.getValid() < getUnixtime())
+                {
+                    logger.fatal("License Expired");
+                    System.exit(1);
+                }
+            } 
+            else
+            {
+                if(!lic.getLicenseType().equals("basic"))
+                {
+                    System.err.println("Invalid MuninMX License File");
+                    logger.fatal("Invalid MuninMX License File");
+                    System.exit(1);
+                }
+                
+                logger.info("Read Master License - LicenseID: " + lic.getLicenseID() + " Valid To: " + lic.getValid() + " Num Nodes: " + lic.getNum_nodes() + " License Type: " + lic.getLicenseType());
+                maxnodes = lic.getNum_nodes();
+                
+                // read additional licenses
+                License alic;
+                for (final File fileEntry : folder.listFiles()) {
+                     if (!fileEntry.isDirectory()) {   
+                         if(fileEntry.getName().endsWith(".license") && !fileEntry.getName().equals("muninmx.license"))
+                         {
+                            crypt.decrypt(logK, fileEntry, new File(fileEntry.getName()+".de"));
+                            fin = new FileInputStream(fileEntry.getName()+".de");
+                            ois = new ObjectInputStream(fin);
+                            alic = (License) ois.readObject();
+                            new File(fileEntry.getName()+".de").delete();
+                            if(alic.getLicenseType().equals("basic"))
+                            {
+                                logger.info("Found another master license... ignoring " + fileEntry.getName());
+                            }
+                            else
+                            {
+                                if(alic.getLicenseID().equals(lic.getLicenseID()))
+                                {
+                                    logger.info("Read Additional License - Matching LicenseID: " + alic.getLicenseID() + " Num Nodes: " + alic.getNum_nodes() + " License Type: " + alic.getLicenseType());
+                                    maxnodes = maxnodes + alic.getNum_nodes();
+                                }
+                                else
+                                {
+                                    logger.info("Additional License " + fileEntry.getName() + " does not match LicenseID. Ignoring");
+                                }
+                            }
+                         }
+                     } 
+                }
+                
+            }
+           
+           }
+           
+           
+       } catch (Exception ex)
+       {
+           logger.fatal("License Error: " + ex.getLocalizedMessage());
+           System.exit(-1);
+       }
+       
+       logger.info("Licensed Nodecount: " + maxnodes);
        
         try
         {
