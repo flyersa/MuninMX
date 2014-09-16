@@ -2,7 +2,9 @@
  * Copyright (c) 2014 by Clavain Technologies GbR.
  * http://www.clavain.com
  */
-package com.clavain.workers.lic;
+package muninmxlictool;
+
+
 
 public class CryptoException extends Exception {
  

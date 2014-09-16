@@ -54,8 +54,8 @@ import static com.clavain.utils.Generic.getUnixtime;
 import com.clavain.workers.NewNodeWatcher;
 import static com.clavain.utils.Database.dbScheduleAllCustomJobs;
 import com.clavain.workers.DataRetentionWorker;
-import com.clavain.workers.lic.CryptoUtils;
-import com.clavain.workers.lic.License;
+import muninmxlictool.CryptoUtils;
+import muninmxlictool.License;
 import java.io.File;
 import java.io.ObjectInputStream;
 /**
@@ -248,6 +248,7 @@ public class muninmxcd {
            
        } catch (Exception ex)
        {
+           ex.printStackTrace();
            logger.fatal("License Error: " + ex.getLocalizedMessage());
            System.exit(-1);
        }

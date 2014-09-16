@@ -2,8 +2,9 @@
  * Copyright (c) 2014 by Clavain Technologies GbR.
  * http://www.clavain.com
  */
-package com.clavain.workers.lic;
+package muninmxlictool;
 
+import muninmxlictool.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
