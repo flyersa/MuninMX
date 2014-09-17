@@ -87,6 +87,7 @@ public class muninmxcd {
     public static CopyOnWriteArrayList<Analyzer> v_analyzer = new CopyOnWriteArrayList<>();
     public static int rcajobs_running = 0;
     public static int maxnodes = 100000;
+    public static int socketTimeout = 30000;
     /**
      * @param args the command line arguments
      */
@@ -105,7 +106,8 @@ public class muninmxcd {
             propInFile = new FileInputStream(args[0]);
             p.loadFromXML(propInFile);            
             String logfile = p.getProperty("log.file");
-
+            socketTimeout = Integer.parseInt(p.getProperty("socket.timeout"));
+            
             PatternLayout layout = new PatternLayout("%d{ISO8601} %-5p %m%n");
 
             ConsoleAppender consoleAppender = new ConsoleAppender( layout );

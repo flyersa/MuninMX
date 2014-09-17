@@ -65,7 +65,7 @@ public class MuninNode
   private int       last_essentials_update = 0;
   private transient Socket lastSocket;
   private String    str_via = "unset";
-  
+
   
     public void setQueryInterval(Integer p_int)
     {
@@ -194,14 +194,14 @@ public class MuninNode
             cs.setKeepAlive(false);
             cs.setSoLinger(true, 0);
             cs.setReuseAddress(true);  
-            cs.setSoTimeout(30000);
+            cs.setSoTimeout(com.clavain.muninmxcd.socketTimeout);
             if(!str_via.equals("unset"))
             {
-                cs.connect(new InetSocketAddress(this.getStr_via(), this.getPort()),30000);    
+                cs.connect(new InetSocketAddress(this.getStr_via(), this.getPort()),com.clavain.muninmxcd.socketTimeout);    
             }
             else
             {
-                cs.connect(new InetSocketAddress(this.getHostname(), this.getPort()),30000);
+                cs.connect(new InetSocketAddress(this.getHostname(), this.getPort()),com.clavain.muninmxcd.socketTimeout);
             }
           
             if(p.getProperty("kill.sockets").equals("true"))
@@ -509,16 +509,16 @@ public class MuninNode
                   
             
             Socket clientSocket = new Socket();
-            clientSocket.setSoTimeout(30000);
+            clientSocket.setSoTimeout(com.clavain.muninmxcd.socketTimeout);
             clientSocket.setKeepAlive(false);
             clientSocket.setReuseAddress(true);   
             if(this.str_via.equals("unset"))
             {            
-                clientSocket.connect(new InetSocketAddress(this.getHostname(), this.getPort()),30000);
+                clientSocket.connect(new InetSocketAddress(this.getHostname(), this.getPort()),com.clavain.muninmxcd.socketTimeout);
             }
             else
             {
-                clientSocket.connect(new InetSocketAddress(this.getStr_via(), this.getPort()),30000);
+                clientSocket.connect(new InetSocketAddress(this.getStr_via(), this.getPort()),com.clavain.muninmxcd.socketTimeout);
             }
             lastSocket = clientSocket;
             SocketCheck sc = new SocketCheck(clientSocket,getUnixtime());
