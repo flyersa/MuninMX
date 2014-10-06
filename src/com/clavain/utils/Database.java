@@ -29,6 +29,7 @@ import com.google.gson.GsonBuilder;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.WriteConcern;
 import java.lang.reflect.Modifier;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -451,10 +452,12 @@ public class Database {
             DB db;
             String dbName = com.clavain.muninmxcd.p.getProperty("mongo.dbessentials");
             db = m.getDB(dbName);
+            db.setWriteConcern(WriteConcern.SAFE);
             DBCollection col = db.getCollection("trackpkg");   
             BasicDBObject query = new BasicDBObject();
             query.append("node", p_nodeid);
             col.remove(query);
+            db.setWriteConcern(WriteConcern.NONE);
         } catch (Exception ex)
         {
             logger.error("Error in removeOldPackageTrack: " + ex.getLocalizedMessage());
