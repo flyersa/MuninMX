@@ -157,6 +157,16 @@ public class JettyHandler extends AbstractHandler {
 
                         dbUpdateAllPluginsForNode(mn);
                     } // return graphs for a given plugin, start up node if not running
+                    else if (l_lTargets.get(2).equals("updateAll") && mn != null) {
+                        mn.run();
+                        try (PrintWriter writer = response.getWriter()) {
+                            writeJson(true, writer);
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }                        
+                    }
                     else if (l_lTargets.get(2).equals("fetch") && l_lTargets.size() == 4 && mn != null) {
                         logger.debug("query plugin: " + l_lTargets.get(3) + " for node: " + mn.getNodename());
                         try (PrintWriter writer = response.getWriter()) {
@@ -300,6 +310,7 @@ public class JettyHandler extends AbstractHandler {
                         baseRequest.setHandled(true);
                     }
                 } else {
+                    // nodeid, userid
                     boolean ucRet = unscheduleCheck(l_lTargets.get(1).toString(), l_lTargets.get(2).toString());
                     if (!ucRet) {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
