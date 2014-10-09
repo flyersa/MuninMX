@@ -609,6 +609,7 @@ public class MuninNode
             doc.put("type","essential");
             com.clavain.muninmxcd.mongo_essential_queue.add(doc);  
             logger.info("Essentials Updated for Node: " + this.getHostname() + ": received base64 (length): " + decodestr.length());
+            last_essentials_update = getUnixtime();
             // read following .
             in.readLine();
         } catch (Exception ex)
@@ -626,7 +627,7 @@ public class MuninNode
     {
         // only try to update this once per hour
         int curTime = getUnixtime();
-        int lalert = this.last_essentials_update + 3600;
+        int lalert = this.last_pkg_update + 3600;
         if(lalert > curTime )
         {  
             return;
@@ -635,6 +636,7 @@ public class MuninNode
         String decodestr = "";
         try 
         {
+            logger.info("TrackPackages - fetching " + this.str_hostname);
             PrintStream os = new PrintStream( p_socket.getOutputStream() );
             BufferedReader in = new BufferedReader(new InputStreamReader( p_socket.getInputStream()) );
             os.println("config muninmx_trackpkg");
@@ -659,12 +661,17 @@ public class MuninNode
 
             String read;
             String sum = bufferedReader.readLine();
-            if(sum == null) {  return; }  
+            if(sum == null) 
+            {  
+                logger.error("TrackPackages - sum is null for: " + this.str_hostname);
+                return; 
+            }  
             String dist = bufferedReader.readLine();
             String ver  = bufferedReader.readLine();
             String kernel = bufferedReader.readLine();
             if(dbTrackLogChangedForNode(sum, this.node_id))
             {
+                logger.info("TrackPackages - packages changed, updating " + this.str_hostname);
                 // purge old logs
                 removeOldPackageTrack(this.node_id);
                 
@@ -680,9 +687,13 @@ public class MuninNode
                      com.clavain.muninmxcd.mongo_essential_queue.add(doc);
                      i++;
                 } 
-                logger.info("TrackPKG Updated for Node: " + this.getHostname() + " ("+dist+" " + ver + " " + kernel + "). tracking " + i + " packages"); 
+                logger.info("TrackPackages Updated for Node: " + this.getHostname() + " ("+dist+" " + ver + " " + kernel + "). tracking " + i + " packages"); 
             }
-            this.last_essentials_update = getUnixtime();
+            else
+            {
+                logger.info("TrackPackages - sum not changed since last run for Node: " + this.getHostname());
+            }
+            this.last_pkg_update = getUnixtime();
 
         } catch (Exception ex)
         {

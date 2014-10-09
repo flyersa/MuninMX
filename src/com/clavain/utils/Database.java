@@ -417,6 +417,12 @@ public class Database {
         {
             Connection conn = connectToDatabase(p);
             java.sql.Statement stmt = conn.createStatement();  
+            if(p_dist.contains("/etc/SuSE-release"))
+            {
+                p_dist = "SuSE";
+                p_ver = "unknown";
+                p_kernel = "unknown";
+            }
             stmt.executeUpdate("UPDATE nodes SET trackpkg_sum = '"+clearStringForSQL(p_sum)+"', track_dist = '"+clearStringForSQL(p_dist)+"', track_ver = '"+clearStringForSQL(p_ver)+"', track_kernel = '"+clearStringForSQL(p_kernel)+"', track_update = NOW() WHERE id = " + p_nodeid);
             
         } catch (Exception ex)
