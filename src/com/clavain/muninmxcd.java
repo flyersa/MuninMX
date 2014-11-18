@@ -202,7 +202,7 @@ public class muninmxcd {
             } 
             else
             {
-                if(!lic.getLicenseType().equals("basic"))
+                if(!lic.getLicenseType().equals("basic") || !lic.getLicenseType().equals("base"))
                 {
                     System.err.println("Invalid MuninMX License File");
                     logger.fatal("Invalid MuninMX License File");

@@ -31,7 +31,7 @@ import java.math.BigDecimal;
  */
 public class Analyzer implements Runnable {
 
-    private String rcaId;;
+    private String rcaId;
     private String groupname;
     private String category;
     private Integer user_id = 0;
@@ -154,24 +154,26 @@ public class Analyzer implements Runnable {
             else if (getGroupname() != null) {
                 logger.info("[RCA] " + getRcaId() + " Filtering with group: " + getGroupname());
                 for (MuninNode l_mn : com.clavain.muninmxcd.v_munin_nodes) {
-                    if (l_mn.getGroup().equals(getGroupname())) {
-                        if (aUser.getUserrole().equals("admin")) {
-                            getRca_nodes().add(l_mn);
-                            logger.info("[RCA] " + getRcaId() + " Added group (" + getGroupname() + ") filtered node: " + l_mn.getNodename());
-                        } else if (aUser.getUserrole().equals("userext")) {
-                            if (l_mn.getUser_id().equals(aUser.getUser_id()) && l_mn.getGroup().equals(getGroupname())) {
+                    if(l_mn.getGroup() != null)
+                    {
+                        if (l_mn.getGroup().equals(getGroupname())) {
+                            if (aUser.getUserrole().equals("admin")) {
                                 getRca_nodes().add(l_mn);
                                 logger.info("[RCA] " + getRcaId() + " Added group (" + getGroupname() + ") filtered node: " + l_mn.getNodename());
-                            }
-                        } else if (aUser.getUserrole().equals("user")) {
-                            // check if group is in accessgroups
-                            List<String> accessgroups = Arrays.asList(aUser.getAccessgroup().split(","));
-                            if (accessgroups.contains(l_mn.getGroup()) && l_mn.getGroup().equals(getGroupname())) {
-                                getRca_nodes().add(l_mn);
-                                logger.info("[RCA] " + getRcaId() + " Added group (" + getGroupname() + ") filtered node: " + l_mn.getNodename());
+                            } else if (aUser.getUserrole().equals("userext")) {
+                                if (l_mn.getUser_id().equals(aUser.getUser_id()) && l_mn.getGroup().equals(getGroupname())) {
+                                    getRca_nodes().add(l_mn);
+                                    logger.info("[RCA] " + getRcaId() + " Added group (" + getGroupname() + ") filtered node: " + l_mn.getNodename());
+                                }
+                            } else if (aUser.getUserrole().equals("user")) {
+                                // check if group is in accessgroups
+                                List<String> accessgroups = Arrays.asList(aUser.getAccessgroup().split(","));
+                                if (accessgroups.contains(l_mn.getGroup()) && l_mn.getGroup().equals(getGroupname())) {
+                                    getRca_nodes().add(l_mn);
+                                    logger.info("[RCA] " + getRcaId() + " Added group (" + getGroupname() + ") filtered node: " + l_mn.getNodename());
+                                }
                             }
                         }
-
                     }
                 }
             } else {
@@ -208,7 +210,7 @@ public class Analyzer implements Runnable {
                 //com.clavain.muninmxcd.v_analyzer.remove(this);
                 return;
             }
-            
+            logger.info("[RCA] " + getRcaId() +"Analyzer job started - processing " + getRca_nodes().size() + " nodes..." );
             // analyze this shit
             setStatus("Analyzer job started - processing " + getRca_nodes().size() + " nodes...");
             

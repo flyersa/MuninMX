@@ -58,7 +58,7 @@ public class Generic {
             con.setRequestMethod("POST");
             con.setRequestProperty("User-Agent", "MuninMX Collector");
             con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-
+           
             String urlParameters = p_data;
 
             // Send post request
