@@ -269,17 +269,27 @@ public class Methods {
             }
             else if(p.getProperty("sms.provider").equals("twilio"))
             {
+                // reformat number?
+                if(mobile_nr.startsWith("00"))
+                {
+                    mobile_nr = "+"+mobile_nr.substring(2,mobile_nr.length());
+                }
+                else if(mobile_nr.startsWith("0"))
+                {
+                    mobile_nr = "+"+mobile_nr.substring(1,mobile_nr.length());
+                }
                 TwilioRestClient client = new TwilioRestClient(p.getProperty("twilio.accountsid"), p.getProperty("twilio.authtoken")); 
                 //String msg = URLEncoder.encode(message);
                 // Build the parameters 
                 List<NameValuePair> params = new ArrayList<>(); 
-                params.add(new BasicNameValuePair("To", "+"+mobile_nr)); 
+                params.add(new BasicNameValuePair("To", mobile_nr)); 
                 params.add(new BasicNameValuePair("From", p.getProperty("twilio.fromnr"))); 
                 params.add(new BasicNameValuePair("Body", message));   
 
                 MessageFactory messageFactory = client.getAccount().getMessageFactory(); 
                 Message tmessage = messageFactory.create(params); 
-                logger.info("twilio: " + tmessage.getSid()); 
+                logger.info("twilio: msg send to " + mobile_nr + " sid: " + tmessage.getSid() + " status: " + tmessage.getStatus() + " twilio emsg: " + tmessage.getErrorMessage()); 
+                
             }
             else if(p.getProperty("sms.provider").equals("script"))
             {
