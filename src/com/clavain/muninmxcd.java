@@ -202,7 +202,7 @@ public class muninmxcd {
             } 
             else
             {
-                if(!lic.getLicenseType().equals("basic") || !lic.getLicenseType().equals("base"))
+                if(!lic.getLicenseType().equals("basic") && !lic.getLicenseType().equals("base"))
                 {
                     System.err.println("Invalid MuninMX License File");
                     logger.fatal("Invalid MuninMX License File");
@@ -223,7 +223,7 @@ public class muninmxcd {
                             ois = new ObjectInputStream(fin);
                             alic = (License) ois.readObject();
                             new File(fileEntry.getName()+".de").delete();
-                            if(alic.getLicenseType().equals("basic"))
+                            if(alic.getLicenseType().equals("basic") || alic.getLicenseType().equals("base"))
                             {
                                 logger.info("Found another master license... ignoring " + fileEntry.getName());
                             }

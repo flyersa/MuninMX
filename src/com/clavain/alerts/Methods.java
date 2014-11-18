@@ -34,6 +34,14 @@ import static com.clavain.alerts.Helpers.*;
 import static com.clavain.utils.Generic.sendPost;
 import java.sql.Connection;
 import static com.clavain.utils.Database.connectToDatabase;
+import java.util.*; 
+import com.twilio.sdk.*; 
+import com.twilio.sdk.resource.factory.*; 
+import com.twilio.sdk.resource.instance.*; 
+import com.twilio.sdk.resource.list.*;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+
 
 /**
  *
@@ -259,6 +267,32 @@ public class Methods {
                     retval = true;
                 }                
             }
+            else if(p.getProperty("sms.provider").equals("twilio"))
+            {
+                TwilioRestClient client = new TwilioRestClient(p.getProperty("twilio.accountsid"), p.getProperty("twilio.authtoken")); 
+                //String msg = URLEncoder.encode(message);
+                // Build the parameters 
+                List<NameValuePair> params = new ArrayList<>(); 
+                params.add(new BasicNameValuePair("To", "+"+mobile_nr)); 
+                params.add(new BasicNameValuePair("From", p.getProperty("twilio.fromnr"))); 
+                params.add(new BasicNameValuePair("Body", message));   
+
+                MessageFactory messageFactory = client.getAccount().getMessageFactory(); 
+                Message tmessage = messageFactory.create(params); 
+                logger.info("twilio: " + tmessage.getSid()); 
+            }
+            else if(p.getProperty("sms.provider").equals("script"))
+            {
+                List<String> commands = new ArrayList<String>();
+                // add global timeout script
+                commands.add(p.getProperty("sms.script"));
+                commands.add(mobile_nr);
+                commands.add(message);
+                ProcessBuilder pb = new ProcessBuilder(commands).redirectErrorStream(true);
+                logger.info("sms.script - Running: " + commands);
+                Process p = pb.start();     
+                Integer rv = p.waitFor();
+            }
         } catch (Exception ex) {
             retval = false;
             logger.error("sendSMSMessage Error: " + ex.getLocalizedMessage());
@@ -270,22 +304,38 @@ public class Methods {
         boolean retval = false;
 
         try {
-            String key = p.getProperty("smsflatrate.key");
-            String gw = p.getProperty("smsflatrate.ttsgw");
+            if(p.getProperty("tts.provider").equals("smsflatrate"))
+            {
+                String key = p.getProperty("smsflatrate.key");
+                String gw = p.getProperty("smsflatrate.ttsgw");
 
-            String msg = URLEncoder.encode(message);
-            URL url = new URL("http://smsflatrate.net/schnittstelle.php?key=" + key + "&to=" + mobile_nr + "&voice=Dave&repeat=2&rate=1&type=" + gw + "&text=" + msg);
-            URLConnection conn = url.openConnection();
-            // open the stream and put it into BufferedReader
-            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String inputLine;
-            String resp = "";
-            while ((inputLine = br.readLine()) != null) {
-                resp = inputLine;
+                String msg = URLEncoder.encode(message);
+                URL url = new URL("http://smsflatrate.net/schnittstelle.php?key=" + key + "&to=" + mobile_nr + "&voice=Dave&repeat=2&rate=1&type=" + gw + "&text=" + msg);
+                URLConnection conn = url.openConnection();
+                // open the stream and put it into BufferedReader
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String inputLine;
+                String resp = "";
+                while ((inputLine = br.readLine()) != null) {
+                    resp = inputLine;
+                }
+                //conn.getContent();      
+                if (resp.trim().equals("100")) {
+                    retval = true;
+                }
             }
-            //conn.getContent();      
-            if (resp.trim().equals("100")) {
-                retval = true;
+            else if(p.getProperty("tts.provider").equals("script"))
+            {
+                List<String> commands = new ArrayList<String>();
+                // add global timeout script
+                commands.add(p.getProperty("tts.script"));
+                commands.add(mobile_nr);
+                commands.add(message);
+                ProcessBuilder pb = new ProcessBuilder(commands).redirectErrorStream(true);
+                logger.info("tts.script - Running: " + commands);
+                Process p = pb.start();     
+                Integer rv = p.waitFor();
+                       
             }
         } catch (Exception ex) {
             retval = false;
