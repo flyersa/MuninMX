@@ -704,10 +704,15 @@ public class MuninNode
             
     }
     
+    public void queuePluginFetch(ArrayList<MuninGraph> p_almg, String p_strPluginName)
+    {
+        queuePluginFetch(p_almg, p_strPluginName, 0);
+    }
+    
     /**
      * fill insertion queue with current graph values for each plugin
      */
-    public void queuePluginFetch(ArrayList<MuninGraph> p_almg, String p_strPluginName)
+    public void queuePluginFetch(ArrayList<MuninGraph> p_almg, String p_strPluginName, int p_iCustomId)
     {
         Iterator<MuninGraph> it = p_almg.iterator();
         while(it.hasNext())
@@ -722,6 +727,11 @@ public class MuninNode
             doc.put("recv", mg.getLastGraphTime());
             doc.put("user_id", this.getUser_id());
             doc.put("nodeid", this.getNode_id());
+            
+            if(p_iCustomId > 0)
+            {
+                doc.put("customId",p_iCustomId);
+            }
             
             // only queue if plugin is initialized or it is a if_err plugin
             if(mg.isInit() || p_strPluginName.startsWith("if_err") || p_strPluginName.equals("swap"))

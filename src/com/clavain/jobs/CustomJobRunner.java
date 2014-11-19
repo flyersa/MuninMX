@@ -79,7 +79,7 @@ public class CustomJobRunner implements Runnable {
             logger.info(mp.getCustomId() + " custom interval job started");
             int iCurTime = getUnixtime();
             mp.updateAllGraps(str_Hostname, mn.getPort(), null, mp.getQuery_interval());
-            mn.queuePluginFetch(mp.returnAllGraphs(), mp.getPluginName());
+            mn.queuePluginFetch(mp.returnAllGraphs(), mp.getPluginName(),customId);
             int iRunTime = getUnixtime() - iCurTime;
             logger.info(mp.getCustomId() + " custom interval job stopped - runtime: " + iRunTime);
         } 
