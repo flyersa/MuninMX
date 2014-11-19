@@ -17,6 +17,7 @@ import static com.clavain.muninmxcd.logMore;
 import static com.clavain.muninmxcd.logger;
 import static com.clavain.muninmxcd.p;
 import static com.clavain.utils.Generic.getUnixtime;
+import static com.clavain.utils.Generic.getMuninNode;
 import static com.clavain.muninmxcd.v_munin_nodes;
 import static com.clavain.utils.Database.connectToDatabase;
 import com.mongodb.DBCursor;
@@ -52,7 +53,7 @@ public class DataRetentionWorker implements Runnable {
                    ResultSet rs = stmt.executeQuery("SELECT * FROM users WHERE retention > 0 AND userrole != 'user'");
                    while(rs.next())
                    {
-                       logger.info("[DataRetentionWorker] Processing User: " + rs.getString("username"));
+                       logger.info("[DataRetentionWorker - User Mode] Processing User: " + rs.getString("username"));
                        // get nodes from this user
                        Iterator it = v_munin_nodes.iterator();
                        List l_nodes = new ArrayList();
@@ -61,7 +62,7 @@ public class DataRetentionWorker implements Runnable {
                         MuninNode l_mn = (MuninNode) it.next();
                         if(l_mn.getUser_id().equals(rs.getInt("id")))
                         {
-                            logger.info("[DataRetentionWorker] probing " + l_mn.getHostname() + " from user: " + rs.getString("username"));
+                            logger.info("[DataRetentionWorker User Mode] probing " + l_mn.getHostname() + " from user: " + rs.getString("username"));
                             String colname = l_mn.getUser_id()+"_"+l_mn.getNode_id(); // recv
                             String colnamees = l_mn.getNode_id()+"_ess";  // time
                             int matchtime = rs.getInt("retention") * 2629743;
@@ -73,7 +74,7 @@ public class DataRetentionWorker implements Runnable {
                             DBCursor cursor = col.find(query);
                             if(cursor.count() > 0)
                             {
-                                logger.info("[DataRetentionWorker] result for " + l_mn.getHostname() + " from user: " + rs.getString("username") + " affected for deletion: " + cursor.count() + " matchtime: lt " + matchtime);
+                                logger.info("[DataRetentionWorker User Mode] result for " + l_mn.getHostname() + " from user: " + rs.getString("username") + " affected for deletion: " + cursor.count() + " matchtime: lt " + matchtime);
                             }
                             col.remove(query);
                             
@@ -85,7 +86,7 @@ public class DataRetentionWorker implements Runnable {
                             cursor = col.find(query);
                             if(cursor.count() > 0)
                             {
-                                logger.info("[DataRetentionWorker] ESSENTIAL result for " + l_mn.getHostname() + " from user: " + rs.getString("username") + " affected for deletion: " + cursor.count() + " matchtime: lt " + matchtime);
+                                logger.info("[DataRetentionWorker User Mode] ESSENTIAL result for " + l_mn.getHostname() + " from user: " + rs.getString("username") + " affected for deletion: " + cursor.count() + " matchtime: lt " + matchtime);
                             }                            
                             col.remove(query);
                             
@@ -94,7 +95,35 @@ public class DataRetentionWorker implements Runnable {
                    }
                    conn.close();
                    
-                   logger.info("[DataRetentionWorker] Finished Retention Run");
+                   logger.info("[DataRetentionWorker User Mode] Finished Retention Run");
+                   
+                   logger.info("[DataRetentionWorker Custom Mode] Starting Retention Run");
+                   stmt = conn.createStatement();
+                   stmt.executeQuery("SELECT * FROM plugins_custom_interval WHERE retention > 0");
+                   while(rs.next())
+                   {  
+                        logger.info("[DataRetentionWorker - Custom Mode] Processing Custom ID: " + rs.getString("id") + " Node: " + rs.getString("node_id") + " Plugin: " + rs.getString("pluginname")); 
+                        MuninNode l_mn = getMuninNode(rs.getInt("node_id"));
+                        if(l_mn != null)
+                        {
+                            String colname = l_mn.getUser_id()+"_"+l_mn.getNode_id(); // recv
+                            int matchtime = rs.getInt("retention") * 86400;
+                            matchtime = getUnixtime() - matchtime;
+                            BasicDBObject query = new BasicDBObject("recv", new BasicDBObject("$lt", matchtime));
+                            query.append("customId", rs.getInt("id"));
+                            String dbName = com.clavain.muninmxcd.p.getProperty("mongo.dbname");
+                            db = m.getDB(dbName);
+                            col = db.getCollection(colname);
+                            DBCursor cursor = col.find(query);
+                            if(cursor.count() > 0)
+                            {
+                                logger.info("[DataRetentionWorker Custom Mode] Custom Interval (CID: "+rs.getInt("id")+")result for " + l_mn.getHostname() + " from user: " + rs.getString("username") + " affected for deletion: " + cursor.count() + " matchtime: lt " + matchtime);
+                            }
+                            col.remove(query);                            
+                        }
+                   }                 
+                   logger.info("[DataRetentionWorker Custom Mode] Finished Retention Run");
+                   
               }
              
           } catch (Exception ex)
