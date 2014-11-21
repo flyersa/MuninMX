@@ -13,6 +13,7 @@ import com.clavain.alerts.msg.TTSMessage;
 import com.clavain.alerts.ratelimiter.PushOverLimiter;
 import com.clavain.alerts.ratelimiter.SMSLimiter;
 import com.clavain.alerts.ratelimiter.TTSLimiter;
+import com.clavain.checks.ReturnDebugTrace;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -23,6 +24,7 @@ import com.mongodb.WriteConcern;
 import com.clavain.executors.MongoExecutor;
 import com.clavain.executors.MongoEssentialExecutor;
 import com.clavain.handlers.JettyLauncher;
+import com.clavain.json.ServiceCheck;
 import com.clavain.munin.MuninNode;
 import com.clavain.munin.MuninPlugin;
 import com.clavain.rca.Analyzer;
@@ -58,6 +60,9 @@ import muninmxlictool.CryptoUtils;
 import muninmxlictool.License;
 import java.io.File;
 import java.io.ObjectInputStream;
+import com.clavain.checks.ReturnServiceCheck;
+import com.google.gson.Gson;
+import java.util.List;
 /**
  *
  * @author enricokern
@@ -67,16 +72,18 @@ public class muninmxcd {
     public static Properties p      = null;
     public static LinkedBlockingQueue<BasicDBObject> mongo_queue = new LinkedBlockingQueue<BasicDBObject>();
     public static LinkedBlockingQueue<BasicDBObject> mongo_essential_queue = new LinkedBlockingQueue<BasicDBObject>();
+    public static LinkedBlockingQueue<BasicDBObject> mongo_check_queue = new LinkedBlockingQueue<BasicDBObject>();
     public static boolean logMore   = false;
     public static MongoClient m;
     public static DB db;
     public static DBCollection col;
-    public static String version    = "0.1 <Codename: Frog in Blender>";
+    public static String version    = "0.5 <Codename: Wild Hog>";
     public static Connection conn = null;    
     public static CopyOnWriteArrayList<MuninNode> v_munin_nodes;
     public static CopyOnWriteArrayList<MuninPlugin> v_cinterval_plugins;
     public static Scheduler sched;
     public static Scheduler sched_custom;
+    public static Scheduler sched_checks;
     public static CopyOnWriteArrayList<SocketCheck> v_sockets;
     // alerting
     public static LinkedBlockingQueue<PushOverMessage> notification_pushover_queue = new LinkedBlockingQueue<PushOverMessage>();
@@ -88,6 +95,9 @@ public class muninmxcd {
     public static int rcajobs_running = 0;
     public static int maxnodes = 100000;
     public static int socketTimeout = 30000;
+    // CHECKS
+    public static CopyOnWriteArrayList<ServiceCheck> v_serviceChecks = new CopyOnWriteArrayList<>();;
+    public static List<Integer> errorProcessing = new CopyOnWriteArrayList<Integer>();
     /**
      * @param args the command line arguments
      */
@@ -333,6 +343,28 @@ public class muninmxcd {
             
             // add all alerts
             dbAddAllAlerts();
+            
+            // Service Checks
+            logger.info("Launching Service Check Scheduler");
+            SchedulerFactory sfsc = new StdSchedulerFactory("checksquartz.properties");
+            sched_checks = sf.getScheduler();   
+            sched_checks.start();             
+            // load service checks from database
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("SELECT * FROM service_checks");
+            while(rs.next())
+            {
+                Gson gson = new Gson();
+                ServiceCheck tc = gson.fromJson(rs.getString("json"), ServiceCheck.class);
+                tc.setCid(rs.getInt("id"));
+                tc.setUser_id(rs.getInt("user_id"));
+                v_serviceChecks.add(tc);
+                logger.info("* " + tc.getCheckname() + " Service Check added");
+            }            
+            // queue service checks
+            for (ServiceCheck it_sc : v_serviceChecks) {
+                scheduleServiceCheck(it_sc);
+            }            
             
             // starting MongoExecutor
             new Thread(new MongoExecutor()).start();

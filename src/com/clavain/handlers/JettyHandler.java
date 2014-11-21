@@ -26,8 +26,11 @@ import static com.clavain.utils.Database.getMuninNodeFromDatabase;
 import static com.clavain.utils.Database.dbUpdateAllPluginsForNode;
 import static com.clavain.muninmxcd.v_munin_nodes;
 import static com.clavain.utils.Quartz.*;
+import static com.clavain.utils.Generic.convertStreamToString;
 import java.net.URLDecoder;
 import static com.clavain.alerts.Methods.sendPushOverMessage;
+import com.clavain.checks.RunServiceCheck;
+import com.clavain.json.ServiceCheck;
 import com.clavain.rca.Analyzer;
 
 /**
@@ -179,7 +182,30 @@ public class JettyHandler extends AbstractHandler {
 
                     }
                 }
-            } // get joblist
+            } 
+            // test check
+            else if(l_lTargets.get(0).equals("testcheck"))
+            {
+               String json = convertStreamToString(request.getInputStream());
+               if(!json.trim().equals(""))
+               {
+                Gson gson = new Gson();
+                ServiceCheck tc = gson.fromJson(json, ServiceCheck.class);
+
+                RunServiceCheck rsc = new RunServiceCheck(tc);
+                try(PrintWriter writer = response.getWriter()) {
+                writeJson(rsc.execute(),writer);
+                } finally { baseRequest.setHandled(true); } 
+               }
+               else
+               {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                try(PrintWriter writer = response.getWriter()) {
+                writer.println("no post data received");    
+                } finally { baseRequest.setHandled(true); } 
+               }
+            }   
+            // get joblist
             else if (l_lTargets.get(0).equals("joblist")) {
                 try (PrintWriter writer = response.getWriter()) {
                     writeJson(getScheduledJobs(), writer);

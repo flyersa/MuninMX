@@ -7,6 +7,7 @@
 package com.clavain.utils;
 
 import com.clavain.alerts.Alert;
+import com.clavain.json.ServiceCheck;
 import com.clavain.munin.MuninNode;
 import com.clavain.munin.MuninPlugin;
 import java.util.Iterator;
@@ -32,7 +33,40 @@ import java.util.TimeZone;
  * @author enricokern
  */
 public class Generic {
+      public static ServiceCheck returnServiceCheck(Integer p_cid)
+      {
+          for (ServiceCheck l_sc : com.clavain.muninmxcd.v_serviceChecks) {
+              if(l_sc.getCid().equals(p_cid))
+              {
+                  return l_sc;
+              }
+          }
+          return null;
 
+    }
+      
+    public static boolean checkIsProcessing(Integer cid)
+    {
+        boolean retval = false;
+        
+        if(com.clavain.muninmxcd.errorProcessing.size() < 1)
+        {
+            return false;
+        }
+        
+        Iterator<Integer> it = com.clavain.muninmxcd.errorProcessing.iterator();
+
+        while(it.hasNext())
+        {
+            Integer check = it.next();
+            if(cid == check)
+            {
+                return true;
+            }
+        }
+        return retval;
+    }
+    
     public static String getHumanReadableDateFromTimeStampWithTimezone(long ts,String Timezone)
     {
          Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone(Timezone));
@@ -93,6 +127,11 @@ public class Generic {
     public static int getUnixtime() {
         return (int) (System.currentTimeMillis() / 1000L);
     }
+
+    public static String convertStreamToString(java.io.InputStream is) {
+        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
+    }       
 
     /**
      * Return a MuninNode by Nodename or Hostname

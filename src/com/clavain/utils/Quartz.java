@@ -6,9 +6,11 @@
  */
 package com.clavain.utils;
 
+import com.clavain.jobs.CheckJob;
 import com.clavain.jobs.CustomJob;
 import com.clavain.jobs.MuninJob;
 import com.clavain.json.ScheduledJob;
+import com.clavain.json.ServiceCheck;
 import com.clavain.munin.MuninNode;
 import com.clavain.munin.MuninPlugin;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
@@ -39,6 +41,83 @@ import org.quartz.CronScheduleBuilder;
  * @author enricokern
  */
 public class Quartz {
+    
+    // schedule a new check
+    public static boolean scheduleServiceCheck(ServiceCheck p_sc)
+    {
+        boolean l_retVal = false;   
+        Trigger trigger = newTrigger().withIdentity("checktrigger", p_sc.getUser_id().toString() + System.currentTimeMillis()).startNow().withSchedule(simpleSchedule().withIntervalInMinutes(p_sc.getInterval()) .repeatForever().withMisfireHandlingInstructionFireNow()).build(); 
+        JobDetail job = newJob(CheckJob.class).withIdentity(p_sc.getCid().toString(), p_sc.getUser_id().toString()).usingJobData("cid", p_sc.getCid()).build();
+        try
+        {
+            com.clavain.muninmxcd.sched_checks.scheduleJob(job, trigger);
+            l_retVal = true;
+        } catch (Exception ex)
+        {
+            com.clavain.muninmxcd.logger.error(ex);
+        }
+        return l_retVal;
+    }    
+    
+    // delete a job
+    public static boolean unscheduleServiceCheck(String p_cid, String p_uid)
+    {
+        boolean l_retVal = false;
+        JobKey jk = new JobKey(p_cid.toString(),p_uid.toString());
+        try {
+            com.clavain.muninmxcd.sched_checks.deleteJob(jk);
+            l_retVal = true;
+        } catch (SchedulerException ex) {
+            com.clavain.muninmxcd.logger.error(ex.getLocalizedMessage());
+        }
+        
+        return l_retVal;
+    }    
+    
+    public static boolean isServiceCheckScheduled(int p_cid)
+    {
+        boolean retval = false;
+        String match = p_cid+"";
+        for(ScheduledJob sj : getScheduledJobs())
+        {
+            if(sj.getJobName().equals(match))
+            {
+                return true;
+            }
+        }
+        
+        return retval;
+    }  
+    
+    public static ArrayList<ScheduledJob> getScheduledServiceChecks()
+    {
+        ArrayList<ScheduledJob> retval = new ArrayList<>();
+        try {
+            for (String groupName : com.clavain.muninmxcd.sched_checks.getJobGroupNames()) {
+
+                for (JobKey jobKey : com.clavain.muninmxcd.sched_checks.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
+
+                     String jobName = jobKey.getName();
+                     String jobGroup = jobKey.getGroup();
+
+                     //get job's trigger
+                     List<Trigger> triggers = (List<Trigger>) com.clavain.muninmxcd.sched_checks.getTriggersOfJob(jobKey);
+                     Date nextFireTime = triggers.get(0).getNextFireTime(); 
+                     ScheduledJob sj = new ScheduledJob();
+                     sj.setJobName(jobName);
+                     sj.setGroupName(jobGroup);
+                     sj.setNextFireTime(nextFireTime.toString());
+                     retval.add(sj);
+                     }
+
+               }
+        } catch (SchedulerException ex) {
+            com.clavain.muninmxcd.logger.error(ex.getLocalizedMessage());
+            ex.printStackTrace();
+        }
+        return retval;
+    }        
+    
     // schedule a new check
     public static boolean scheduleJob(MuninNode mn)
     {

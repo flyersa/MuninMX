@@ -93,7 +93,7 @@ public class DataRetentionWorker implements Runnable {
                           }
                        }
                    }
-                   conn.close();
+                   //conn.close();
                    
                    logger.info("[DataRetentionWorker User Mode] Finished Retention Run");
                    
@@ -123,7 +123,7 @@ public class DataRetentionWorker implements Runnable {
                         }
                    }                 
                    logger.info("[DataRetentionWorker Custom Mode] Finished Retention Run");
-                   
+                   conn.close();
               }
              
           } catch (Exception ex)

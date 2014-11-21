@@ -34,6 +34,7 @@ import java.lang.reflect.Modifier;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static com.clavain.utils.Generic.getStampFromTimeAndZone;
 /**
  *
  * @author enricokern
@@ -480,4 +481,42 @@ public class Database {
         }//end while
         return rsCount;
     } 
+    
+    public static boolean serviceCheckGotDowntime(Integer cid, int timestamp)
+    {
+        boolean retval = false;
+        try
+        {
+            Connection conn = connectToDatabase(p);
+            java.sql.Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+            ResultSet rs = stmt.executeQuery("SELECT * FROM downtimes WHERE check_id = " + cid);
+            if(rowCount(rs) > 0)
+            {
+                Integer ftime;
+                Integer ttime;
+                rs.beforeFirst();
+                while(rs.next())
+                {
+                    if(rs.getInt("repeating") == 1)
+                    {
+                        ftime =  (int) getStampFromTimeAndZone(rs.getString("from_time"),rs.getString("timezone"));
+                        ttime =  (int) getStampFromTimeAndZone(rs.getString("to_time"),rs.getString("timezone"));
+                    }
+                    else
+                    {
+                        ftime = Integer.parseInt(rs.getString("from_time"));
+                        ttime = Integer.parseInt(rs.getString("to_time"));
+                    }
+                    if(ftime < timestamp && timestamp < ttime)
+                    {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception ex)
+        {
+            com.clavain.muninmxcd.logger.error("serviceCheckGotDowntime Error: " + ex.getLocalizedMessage());
+        }
+        return retval;
+    }    
 }
