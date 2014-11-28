@@ -183,6 +183,94 @@ public class JettyHandler extends AbstractHandler {
                     }
                 }
             } 
+            // check commands
+            else if (l_lTargets.get(0).equals("check")) {
+                ServiceCheck sc = null;
+                if (l_lTargets.size() <= 2) {
+                    sc = returnServiceCheck(Integer.parseInt(l_lTargets.get(1).toString()));
+                    try (PrintWriter writer = response.getWriter()) {
+                        writeJson(sc, writer);
+                    } catch (Exception ex) {
+                        baseRequest.setHandled(true);
+                    } finally {
+                       baseRequest.setHandled(true);
+                    }                                        
+                } else {  
+                   sc = returnServiceCheck(Integer.parseInt(l_lTargets.get(2).toString()));
+                   if (l_lTargets.get(1).equals("pause") && sc != null) 
+                   {
+                        logger.info("Pausing Check " + sc.getCheckname());
+                        sc.setIs_active(false);
+                        try (PrintWriter writer = response.getWriter()) {
+                            writeJson(true, writer);
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }  
+                   }  
+                   else if(l_lTargets.get(1).equals("continue") && sc != null)
+                   {
+                        logger.info("Continue Check " + sc.getCheckname());
+                        sc.setIs_active(true);
+                        try (PrintWriter writer = response.getWriter()) {
+                            writeJson(true, writer);
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }                         
+                   }
+                   else if(l_lTargets.get(1).equals("dequeue") && sc != null)
+                   {
+                        logger.info("dequeue Check " + sc.getCheckname());
+                        sc.setIs_active(false);
+                        boolean uret = unscheduleServiceCheck(sc.getCid().toString(), sc.getUser_id().toString());
+                        try (PrintWriter writer = response.getWriter()) {
+                            if(uret)
+                            {
+                                com.clavain.muninmxcd.v_serviceChecks.remove(sc);
+                                writeJson(true, writer);
+                            }
+                            else
+                            {
+                                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                writeJson(false, writer);    
+                            }
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }                         
+                   }   
+                   else if(l_lTargets.get(1).equals("queue"))
+                   {
+                        
+                        logger.info("queue Check with id " + l_lTargets.get(2).toString());
+                        
+                        boolean uret = isServiceCheckScheduled(Integer.parseInt(l_lTargets.get(2).toString()));
+                        if(uret == false)
+                        {
+                            uret = scheduleServiceCheck(Integer.parseInt(l_lTargets.get(2).toString()));
+                        }
+                        try (PrintWriter writer = response.getWriter()) {
+                            if(uret)
+                            {
+                                writeJson(true, writer);
+                            }
+                            else
+                            {
+                                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                writeJson(false, writer);    
+                            }
+                        } catch (Exception ex) {
+                            baseRequest.setHandled(true);
+                        } finally {
+                            baseRequest.setHandled(true);
+                        }                         
+                   }                     
+                }
+            }
             // test check
             else if(l_lTargets.get(0).equals("testcheck"))
             {
@@ -215,6 +303,16 @@ public class JettyHandler extends AbstractHandler {
                     baseRequest.setHandled(true);
                 }
             } 
+            // get servicecheck list
+            else if (l_lTargets.get(0).equals("checklist")) {
+                try (PrintWriter writer = response.getWriter()) {
+                    writeJson(com.clavain.muninmxcd.v_serviceChecks, writer);
+                } catch (Exception ex) {
+                    baseRequest.setHandled(true);
+                } finally {
+                    baseRequest.setHandled(true);
+                }
+            }             
             else if (l_lTargets.get(0).equals("alertlist")) {
                 try (PrintWriter writer = response.getWriter()) {
                     writeJson(com.clavain.muninmxcd.v_alerts, writer);

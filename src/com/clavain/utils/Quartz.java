@@ -30,6 +30,8 @@ import org.quartz.JobKey;
 import static org.quartz.TriggerBuilder.newTrigger;
 import static org.quartz.impl.matchers.GroupMatcher.groupEquals;
 import static com.clavain.utils.Database.getMuninPluginForCustomJobFromDb;
+import static com.clavain.utils.Database.getServiceCheckFromDatabase;
+
 import static com.clavain.utils.Generic.getStampFromTimeAndZone;
 import static com.clavain.utils.Generic.getMuninPluginForCustomJob;
 import java.text.SimpleDateFormat;
@@ -42,11 +44,21 @@ import org.quartz.CronScheduleBuilder;
  */
 public class Quartz {
     
+    public static boolean scheduleServiceCheck(Integer p_cid)
+    {
+        ServiceCheck sc = getServiceCheckFromDatabase(p_cid);
+        if(sc == null)
+        {
+            return false;
+        }
+        return scheduleServiceCheck(sc);
+    }
+    
     // schedule a new check
     public static boolean scheduleServiceCheck(ServiceCheck p_sc)
     {
         boolean l_retVal = false;   
-        Trigger trigger = newTrigger().withIdentity("checktrigger", p_sc.getUser_id().toString() + System.currentTimeMillis()).startNow().withSchedule(simpleSchedule().withIntervalInMinutes(p_sc.getInterval()) .repeatForever().withMisfireHandlingInstructionFireNow()).build(); 
+        Trigger trigger = newTrigger().withIdentity("checktrigger", p_sc.getUser_id().toString() + p_sc.getCid() + System.currentTimeMillis()).startNow().withSchedule(simpleSchedule().withIntervalInMinutes(p_sc.getInterval()) .repeatForever().withMisfireHandlingInstructionFireNow()).build(); 
         JobDetail job = newJob(CheckJob.class).withIdentity(p_sc.getCid().toString(), p_sc.getUser_id().toString()).usingJobData("cid", p_sc.getCid()).build();
         try
         {
@@ -78,6 +90,7 @@ public class Quartz {
     {
         boolean retval = false;
         String match = p_cid+"";
+        
         for(ScheduledJob sj : getScheduledJobs())
         {
             if(sj.getJobName().equals(match))
@@ -321,6 +334,34 @@ public class Quartz {
         }
         return retval;
     } 
+ 
+    public static ArrayList<ScheduledJob> getScheduledCheckJobs()
+    {
+        ArrayList<ScheduledJob> retval = new ArrayList<>();
+        try {
+            for (String groupName : com.clavain.muninmxcd.sched_checks.getJobGroupNames()) {
+
+                for (JobKey jobKey : com.clavain.muninmxcd.sched_checks.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
+
+                     String jobName = jobKey.getName();
+                     String jobGroup = jobKey.getGroup();
+
+                     //get job's trigger
+                     List<Trigger> triggers = (List<Trigger>) com.clavain.muninmxcd.sched_checks.getTriggersOfJob(jobKey);
+                     Date nextFireTime = triggers.get(0).getNextFireTime(); 
+                     ScheduledJob sj = new ScheduledJob();
+                     sj.setJobName(jobName);
+                     sj.setGroupName(jobGroup);
+                     sj.setNextFireTime(nextFireTime.toString());
+                     retval.add(sj);
+                     }
+
+               }
+        } catch (SchedulerException ex) {
+            logger.error("Error in getScheduledJobs(): " + ex.getLocalizedMessage());
+        }
+        return retval;
+    }       
     
     public static ArrayList<ScheduledJob> getScheduledCustomJobs()
     {

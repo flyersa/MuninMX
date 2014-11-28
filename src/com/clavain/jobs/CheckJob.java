@@ -34,6 +34,14 @@ public class CheckJob implements Job {
             JobDataMap dataMap = jec.getJobDetail().getJobDataMap();
             Integer cid = dataMap.getInt("cid");
             ServiceCheck sc = returnServiceCheck(cid);
+            
+            // is check active?
+            if(!sc.isIs_active())
+            {
+                com.clavain.muninmxcd.logger.info("[CheckJob] Check " + sc.getCheckname() + " with id " + sc.getCid() + " is paused. skipping run");
+                return;
+            }
+            
             ReturnServiceCheck rsc = new RunServiceCheck(sc).execute();
 
             
@@ -49,7 +57,7 @@ public class CheckJob implements Job {
             BasicDBObject doc = new BasicDBObject();
             if(rdt != null)
             {
-                com.clavain.muninmxcd.logger.info("[CheckJob] Added Trace for check: " + sc.getCid());
+                com.clavain.muninmxcd.logger.info("[CheckJob] Added Trace for Check "+sc.getCheckname()+" with id " + sc.getCid());
                 doc.put("cid", rdt.getCid());
                 doc.put("status", rdt.getRetval());
                 if(rdt.getOutput().length() > 1)
@@ -84,16 +92,9 @@ public class CheckJob implements Job {
                       // check if its already handled
                       if(!checkIsProcessing(rsc.getCid()))
                       {
-                        if(!serviceCheckGotDowntime(rsc.getCid(),getUnixtime()))
-                        {
-                            com.clavain.muninmxcd.logger.info("[ServiceCheck] - Check " + sc.getCheckname() + " with id " + sc.getCid() + " is in error state. Starting Inspector"); 
-                            // START Inspector
-                            com.clavain.muninmxcd.errorProcessing.add(rsc.getCid());
-                        }
-                        else
-                        {
-                            com.clavain.muninmxcd.logger.info("[ServiceCheck] - Check " + sc.getCheckname() + " with id " + sc.getCid() + " is in error state but got a downtime assigned. ignoring");
-                        }
+                        com.clavain.muninmxcd.logger.info("[ServiceCheck] - Check " + sc.getCheckname() + " with id " + sc.getCid() + " is in error state. Starting Inspector"); 
+                        // START Inspector
+                        com.clavain.muninmxcd.errorProcessing.add(rsc.getCid());
                       }
                       else
                       {

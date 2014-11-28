@@ -7,6 +7,7 @@
 package com.clavain.utils;
 
 import com.clavain.alerts.Alert;
+import com.clavain.json.ServiceCheck;
 import com.clavain.json.User;
 import com.clavain.munin.MuninGraph;
 import com.clavain.munin.MuninNode;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import static com.clavain.muninmxcd.p;
+import static com.clavain.muninmxcd.v_serviceChecks;
 import com.clavain.rca.Analyzer;
 import static com.clavain.utils.Generic.getMuninNode;
 import static com.clavain.utils.Quartz.scheduleCustomIntervalJob;
@@ -185,6 +187,34 @@ public class Database {
         return luser;
     }
     
+    
+    public static ServiceCheck getServiceCheckFromDatabase(Integer cid)
+    {
+        ServiceCheck sc = null;
+        try
+        {
+            Connection conn = connectToDatabase(p);
+            java.sql.Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM service_checks WHERE id = " + cid);
+
+            while(rs.next())
+            {
+                Gson gson = new Gson();
+                sc = gson.fromJson(rs.getString("json"), ServiceCheck.class);
+                sc.setCid(rs.getInt("id"));
+                sc.setUser_id(rs.getInt("user_id"));
+                v_serviceChecks.add(sc);
+                logger.info("* " + sc.getCheckname() + " Service Check added from database");                
+            }   
+            conn.close();
+        } catch (Exception ex)
+        {
+            logger.error("getServiceCheckFromDatabase Error: " + ex.getLocalizedMessage());
+            ex.printStackTrace();
+            return null;
+        }        
+        return sc;
+    }
     
     public static MuninNode getMuninNodeFromDatabase(Integer nodeId)
     {

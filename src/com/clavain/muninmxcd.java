@@ -61,6 +61,7 @@ import muninmxlictool.License;
 import java.io.File;
 import java.io.ObjectInputStream;
 import com.clavain.checks.ReturnServiceCheck;
+import com.clavain.executors.MongoCheckExecutor;
 import com.google.gson.Gson;
 import java.util.List;
 /**
@@ -347,7 +348,7 @@ public class muninmxcd {
             // Service Checks
             logger.info("Launching Service Check Scheduler");
             SchedulerFactory sfsc = new StdSchedulerFactory("checksquartz.properties");
-            sched_checks = sf.getScheduler();   
+            sched_checks = sfsc.getScheduler();   
             sched_checks.start();             
             // load service checks from database
             stmt = conn.createStatement();
@@ -371,7 +372,10 @@ public class muninmxcd {
         
             // starting MongoExecutor for Package Tracking and Essential Informations
             new Thread(new MongoEssentialExecutor()).start();            
-            
+
+            // starting MongoExecutor for Service Checks
+            new Thread(new MongoCheckExecutor()).start();            
+
             // starting newnodewatcher
             new Thread(new NewNodeWatcher()).start();
             
@@ -389,10 +393,29 @@ public class muninmxcd {
             
             int curTime;
             int toTime;
+            int mb = 1024*1024;
             while(true)
             {
                 Thread.sleep(5000);
                 System.out.println("Mongo Queue Size: " + mongo_queue.size());
+                System.out.println("Mongo Check Queue Size: " + mongo_check_queue.size());
+                System.out.println("Mongo Essential Queue Size: " + mongo_essential_queue.size());
+
+                Runtime runtime = Runtime.getRuntime();
+                //Print used memory
+                System.out.println("Used Memory:"
+                    + (runtime.totalMemory() - runtime.freeMemory()) / mb);
+
+                //Print free memory
+                System.out.println("Free Memory:"
+                    + runtime.freeMemory() / mb);
+
+                //Print total available memory
+                System.out.println("Total Memory:" + runtime.totalMemory() / mb);
+
+                //Print Maximum available memory
+                System.out.println("Max Memory:" + runtime.maxMemory() / mb);    
+                System.out.println(" ");                
                 
                 if(p.getProperty("kill.sockets").equals("true"))
                 {
