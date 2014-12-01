@@ -108,6 +108,20 @@ public class Helpers {
         }   
     }
     
+     public static void updateCheckNotificationLog(Integer cid, Integer contact_id, String msg, String msg_type)
+    {
+        try 
+        {
+            Connection conn = connectToDatabase(p);   
+            java.sql.Statement stmt = conn.createStatement();
+            stmt.executeUpdate("INSERT INTO check_notification_log (cid,contact_id,msg,msg_type) VALUES ("+cid+","+contact_id+",'"+msg+"','"+msg_type+"')");
+            conn.close();
+        } catch (Exception ex)
+        {
+            com.clavain.muninmxcd.logger.error("Error in updateCheckNotification Log : " + ex.getLocalizedMessage());
+        }   
+    }
+    
     public static boolean removeAlert(Integer p_alertId)
     {
         boolean retval = false;

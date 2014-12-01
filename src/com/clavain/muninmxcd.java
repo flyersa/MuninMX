@@ -62,6 +62,7 @@ import java.io.File;
 import java.io.ObjectInputStream;
 import com.clavain.checks.ReturnServiceCheck;
 import com.clavain.executors.MongoCheckExecutor;
+import com.clavain.workers.ErrorNotifyExecutor;
 import com.google.gson.Gson;
 import java.util.List;
 /**
@@ -90,6 +91,7 @@ public class muninmxcd {
     public static LinkedBlockingQueue<PushOverMessage> notification_pushover_queue = new LinkedBlockingQueue<PushOverMessage>();
     public static LinkedBlockingQueue<ShortTextMessage> notification_sms_queue = new LinkedBlockingQueue<ShortTextMessage>();
     public static LinkedBlockingQueue<TTSMessage> notification_tts_queue = new LinkedBlockingQueue<TTSMessage>();  
+    public static LinkedBlockingQueue<ReturnServiceCheck> check_error_queue = new LinkedBlockingQueue<ReturnServiceCheck>();
     public static CopyOnWriteArrayList<Alert> v_alerts = new CopyOnWriteArrayList<>();
     // RCA
     public static CopyOnWriteArrayList<Analyzer> v_analyzer = new CopyOnWriteArrayList<>();
@@ -390,6 +392,9 @@ public class muninmxcd {
             
             // start DataRetention Worker
             new Thread(new DataRetentionWorker()).start();
+            
+            // start Error Notify Inspector
+            new Thread(new ErrorNotifyExecutor()).start();            
             
             int curTime;
             int toTime;

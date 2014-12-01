@@ -95,6 +95,7 @@ public class CheckJob implements Job {
                         com.clavain.muninmxcd.logger.info("[ServiceCheck] - Check " + sc.getCheckname() + " with id " + sc.getCid() + " is in error state. Starting Inspector"); 
                         // START Inspector
                         com.clavain.muninmxcd.errorProcessing.add(rsc.getCid());
+                        com.clavain.muninmxcd.check_error_queue.add(rsc);
                       }
                       else
                       {

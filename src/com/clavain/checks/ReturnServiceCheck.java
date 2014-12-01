@@ -16,6 +16,16 @@ public class ReturnServiceCheck {
     private Integer user_id;
     private Integer cid;
     private Integer checktime;
+    private Integer downTimeConfirmedAt;
+    private Integer lastDownTimeConfirm;
+    private String checktype;
+    private String checkname;
+    private Integer interval;
+    private Integer notifydown;
+    private Integer notifyagain;
+    private Integer notifyifup;
+    private Integer notifyflap;
+    private String json;
     
     /**
      * @return the returnValue
@@ -91,6 +101,146 @@ public class ReturnServiceCheck {
      */
     public void setChecktime(Integer checktime) {
         this.checktime = checktime;
+    }
+
+    /**
+     * @return the downTimeConfirmedAt
+     */
+    public Integer getDownTimeConfirmedAt() {
+        return downTimeConfirmedAt;
+    }
+
+    /**
+     * @param downTimeConfirmedAt the downTimeConfirmedAt to set
+     */
+    public void setDownTimeConfirmedAt(Integer downTimeConfirmedAt) {
+        this.downTimeConfirmedAt = downTimeConfirmedAt;
+    }
+
+    /**
+     * @return the lastDownTimeConfirm
+     */
+    public Integer getLastDownTimeConfirm() {
+        return lastDownTimeConfirm;
+    }
+
+    /**
+     * @param lastDownTimeConfirm the lastDownTimeConfirm to set
+     */
+    public void setLastDownTimeConfirm(Integer lastDownTimeConfirm) {
+        this.lastDownTimeConfirm = lastDownTimeConfirm;
+    }
+
+    /**
+     * @return the checktype
+     */
+    public String getChecktype() {
+        return checktype;
+    }
+
+    /**
+     * @param checktype the checktype to set
+     */
+    public void setChecktype(String checktype) {
+        this.checktype = checktype;
+    }
+
+    /**
+     * @return the checkname
+     */
+    public String getCheckname() {
+        return checkname;
+    }
+
+    /**
+     * @param checkname the checkname to set
+     */
+    public void setCheckname(String checkname) {
+        this.checkname = checkname;
+    }
+
+    /**
+     * @return the interval
+     */
+    public Integer getInterval() {
+        return interval;
+    }
+
+    /**
+     * @param interval the interval to set
+     */
+    public void setInterval(Integer interval) {
+        this.interval = interval;
+    }
+
+    /**
+     * @return the notifydown
+     */
+    public Integer getNotifydown() {
+        return notifydown;
+    }
+
+    /**
+     * @param notifydown the notifydown to set
+     */
+    public void setNotifydown(Integer notifydown) {
+        this.notifydown = notifydown;
+    }
+
+    /**
+     * @return the notifyagain
+     */
+    public Integer getNotifyagain() {
+        return notifyagain;
+    }
+
+    /**
+     * @param notifyagain the notifyagain to set
+     */
+    public void setNotifyagain(Integer notifyagain) {
+        this.notifyagain = notifyagain;
+    }
+
+    /**
+     * @return the notifyifup
+     */
+    public Integer getNotifyifup() {
+        return notifyifup;
+    }
+
+    /**
+     * @param notifyifup the notifyifup to set
+     */
+    public void setNotifyifup(Integer notifyifup) {
+        this.notifyifup = notifyifup;
+    }
+
+    /**
+     * @return the notifyflap
+     */
+    public Integer getNotifyflap() {
+        return notifyflap;
+    }
+
+    /**
+     * @param notifyflap the notifyflap to set
+     */
+    public void setNotifyflap(Integer notifyflap) {
+        this.notifyflap = notifyflap;
+    }
+
+    /**
+     * @return the json
+     */
+    public String getJson() {
+        return json;
+    }
+
+    /**
+     * @param json the json to set
+     */
+    public void setJson(String json) {
+        this.json = json;
     }
     
     

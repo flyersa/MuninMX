@@ -501,7 +501,7 @@ public class Database {
         }
     }
     
-    private static int rowCount(ResultSet rs) throws SQLException
+    public static int rowCount(ResultSet rs) throws SQLException
     {
         int rsCount = 0;
         while(rs.next())

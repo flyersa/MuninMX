@@ -31,6 +31,7 @@ import org.apache.commons.mail.SimpleEmail;
 import static com.clavain.muninmxcd.logger;
 import static com.clavain.muninmxcd.p;
 import static com.clavain.alerts.Helpers.*;
+import com.clavain.checks.ReturnServiceCheck;
 import static com.clavain.utils.Generic.sendPost;
 import java.sql.Connection;
 import static com.clavain.utils.Database.connectToDatabase;
@@ -41,7 +42,7 @@ import com.twilio.sdk.resource.instance.*;
 import com.twilio.sdk.resource.list.*;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
-
+import static com.clavain.muninmxcd.logger;
 
 /**
  *
@@ -49,6 +50,157 @@ import org.apache.http.message.BasicNameValuePair;
  */
 public class Methods {
 
+  public static void sendUPNotifications(ReturnServiceCheck sc)
+    {
+        Integer cid = sc.getCid();
+        try
+        {
+           Connection conn = connectToDatabase(com.clavain.muninmxcd.p);
+           java.sql.Statement stmt = conn.createStatement();
+   
+             ResultSet rs = stmt.executeQuery("SELECT notifications.id as nid, contacts.* FROM `notifications` LEFT JOIN contacts ON notifications.contact_id = contacts.id WHERE check_id = " + cid);    
+             while(rs.next())
+             {
+                 Integer contact_id = rs.getInt("id");
+                 String dayField = getScheduleFieldToCheck();
+                 logger.info("[Check Notifications " + cid +"] Found " + rs.getString("contact_name"));
+                 if(rs.getString(dayField).equals("disabled"))
+                 {
+                     logger.info("[Check Notifications " + cid +"] " + rs.getString("contact_name") + " disabled notifications for today - skipping contact");
+                 }
+                 else
+                 {
+                     String splitField = rs.getString(dayField);
+                     // figure out if this user got notifications enabled or disabled for the current hour and time
+                     String[] hours=splitField.split(";");
+                     long a = getStampFromTimeAndZone(hours[0],rs.getString("timezone"));
+                     long b = getStampFromTimeAndZone(hours[1],rs.getString("timezone"));
+                     long cur = (System.currentTimeMillis() / 1000L);
+                     // if in range send notifications
+                     if(a < cur && b > cur)
+                     {
+                         String title = "Service OK: " + sc.getCheckname() + " ("+sc.getChecktype()+")";
+                         String message = "The Service is now up again.";
+                         String json = "";
+                         if(rs.getInt("email_active") == 1)
+                         {
+                             logger.info("[Check Notifications " + cid +"] " + rs.getString("contact_name") + " Sending E-Mail");
+                             sendMail(title, message,rs.getString("contact_email"));
+                             updateCheckNotificationLog(cid, contact_id, "UPTIME E-Mail send to "+rs.getString("contact_email"), "email");  
+                         }   
+                         if(rs.getInt("sms_active") == 1)
+                         {
+                             logger.info("[Check Notifications " + cid +"] " + rs.getString("contact_name") + " Sending SMS");
+                             sendSMS(title, message,rs.getString("contact_mobile_nr"),rs.getInt("user_id"));
+                             updateCheckNotificationLog(cid, contact_id, "UPTIME SMS send to "+rs.getString("contact_mobile_nr"), "sms");  
+                         }    
+                         if(rs.getInt("pushover_active") == 1)
+                         {
+                             logger.info("[Check Notifications " + cid +"] " + rs.getString("contact_name") + " Sending Pushover Notification");
+                             sendPushover(title, message ,rs.getString("pushover_key"));
+                             updateCheckNotificationLog(cid, contact_id, "UPTIME PushOver Message send to "+rs.getString("pushover_key"), "pushover");  
+                         }                                
+                     }
+                     else
+                     {
+                        logger.info("[Check Notifications " + cid +"] " + rs.getString("contact_name") + " disabled notifications for this timerange - skipping contact");
+                     }
+                 }
+             }            
+        } catch (Exception ex)
+        {
+              logger.error("Error in sendUPNotifications for CID " + cid + " : " + ex.getLocalizedMessage());
+        }
+    }
+       
+    
+ public static void sendNotifications(ReturnServiceCheck sc)
+    {
+        Integer cid = sc.getCid();
+        try
+        {
+            Connection conn = connectToDatabase(com.clavain.muninmxcd.p);
+            java.sql.Statement stmt = conn.createStatement();
+   
+             ResultSet rs = stmt.executeQuery("SELECT notifications.id as nid, contacts.* FROM `notifications` LEFT JOIN contacts ON notifications.contact_id = contacts.id WHERE check_id = " + cid);    
+             while(rs.next())
+             {
+                 Integer contact_id = rs.getInt("id");
+                 String dayField = getScheduleFieldToCheck();
+                 logger.info("[Check Notifications " + cid +"] Found " + rs.getString("contact_name"));
+                 if(rs.getString(dayField).equals("disabled"))
+                 {
+                     logger.info("[Check Notifications " + cid +"] " + rs.getString("contact_name") + " disabled notifications for today - skipping contact");
+                 }
+                 else
+                 {
+                     String splitField = rs.getString(dayField);
+                     // figure out if this user got notifications enabled or disabled for the current hour and time
+                     String[] hours=splitField.split(";");
+                     long a = getStampFromTimeAndZone(hours[0],rs.getString("timezone"));
+                     long b = getStampFromTimeAndZone(hours[1],rs.getString("timezone"));
+                     long cur = (System.currentTimeMillis() / 1000L);
+                     // if in range send notifications
+                     if(a < cur && b > cur)
+                     {
+
+                            String failTime = getHumanReadableDateFromTimeStampWithTimezone(sc.getDownTimeConfirmedAt(),rs.getString("timezone"));
+                            String title = "ALERT: " + sc.getCheckname() + " ("+sc.getChecktype()+")";
+                            String message = "Service Downtime verified @ "+failTime+".   Details: " + sc.getOutput().get(0);
+
+                            String json = "";
+                            if(rs.getInt("callback_active") == 1)
+                            {
+                                logger.info("[Check Notifications " + cid +"] " + rs.getString("contact_name") + " Sending Callback");
+                                sendCallback(sc, rs.getString("contact_callback"));
+                                updateCheckNotificationLog(cid, contact_id, "Callback executed to "+rs.getString("contact_callback"), "callback");
+                            }
+                            if(rs.getInt("tts_active") == 1)
+                            {
+                                title = "This is a PingReports Alert: The Servicecheck: " + sc.getCheckname() + " with type: "+sc.getChecktype()+" is in alert state.";                            
+                                logger.info("[Notifications " + cid +"] " + rs.getString("contact_name") + " Initiating TTS Call");
+                                sendTTS(title, message ,rs.getString("contact_mobile_nr"),rs.getInt("user_id"));
+                                updateCheckNotificationLog(cid, contact_id, "Text2Speech Call initiated to "+rs.getString("contact_mobile_nr"), "tts"); 
+                            }
+                            if(rs.getInt("email_active") == 1)
+                            {
+                                logger.info("[Check Notifications " + cid +"] " + rs.getString("contact_name") + " Sending E-Mail");
+                                String ENDL = System.getProperty("line.separator");
+                                message = "Service Downtime verified @ "+failTime+"."+ENDL+ENDL+"Details:" + ENDL + ENDL + sc.getOutput().get(0);
+                                sendMail(title, message,rs.getString("contact_email"));
+                                updateCheckNotificationLog(cid, contact_id, "E-Mail send to "+rs.getString("contact_email"), "email"); 
+                            }   
+                            if(rs.getInt("sms_active") == 1)
+                            {
+                                title = sc.getCheckname() + "("+sc.getChecktype()+")";
+                                message = sc.getOutput().get(0);
+                                logger.info("[Check Notifications " + cid +"] " + rs.getString("contact_name") + " Sending SMS");
+                                sendSMS(title, message,rs.getString("contact_mobile_nr"),rs.getInt("user_id"));
+                                updateCheckNotificationLog(cid, contact_id, "SMS send to "+rs.getString("contact_mobile_nr"), "sms"); 
+                            }    
+                            if(rs.getInt("pushover_active") == 1)
+                            {
+                                logger.info("[Check Notifications " + cid +"] " + rs.getString("contact_name") + " Sending Pushover Notification");
+                                sendPushover(title, message ,rs.getString("pushover_key"));
+                                updateCheckNotificationLog(cid, contact_id, "PushOver Message send to "+rs.getString("pushover_key"), "pushover"); 
+                            }  
+
+                     }
+                     else
+                     {
+                        logger.info("[Check Notifications " + cid +"] " + rs.getString("contact_name") + " disabled notifications for this timerange - skipping contact");
+                     }
+                 }
+             }
+            
+        } catch (Exception ex)
+        {
+            logger.error("Error in sendNotifications for CID " + cid + " : " + ex.getLocalizedMessage());
+            ex.printStackTrace();
+        }
+    }    
+      
+    
     public static void sendNotifications(Alert alert) {
         Integer aid = alert.getAlert_id();
 
@@ -148,7 +300,7 @@ public class Methods {
                 email.setSSLOnConnect(false);
             }
             email.setFrom(p.getProperty("mailserver.from"));
-            email.setSubject("[MuninMX]" + title);
+            email.setSubject("[MuninMX] " + title);
             email.setMsg(message);
             email.addTo(emailaddy);
             email.send();
@@ -189,6 +341,13 @@ public class Methods {
 
     // send a http json callback to a url
     private static void sendCallback(Alert alert, String url) {
+        Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create();
+        String json = gson.toJson(alert);
+        sendPost(url, json);
+    }
+    
+    // send a http json callback to a url
+    private static void sendCallback(ReturnServiceCheck alert, String url) {
         Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create();
         String json = gson.toJson(alert);
         sendPost(url, json);

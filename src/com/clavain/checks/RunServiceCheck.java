@@ -98,35 +98,38 @@ public class RunServiceCheck {
             //list_Return.add(str_parse);
             
             // rerun to eliminate false positives
-            if(rv > 0)
+            if(com.clavain.muninmxcd.p.getProperty("nagios.rerun").equals("true"))
             {
-               list_Return.clear();
-               pb = new ProcessBuilder(commands).redirectErrorStream(true);
-               logger.info("[RunServiceCheck] Re-Running (because last was error): " + commands);
-               p = pb.start();
-               is = p.getInputStream();
-               reader = new BufferedReader(new InputStreamReader(is));
-               // print output
-               str_output = null;
-               str_parse = null;
-               while ((str_output = reader.readLine()) != null) {
-                   //logger.info(str_output);
-                   str_parse = str_output;
-               }  
-               // TODO: parse nagios plugin output, ignore last
-               st = new StringTokenizer(str_parse,"|");
+                if(rv > 0)
+                {
+                   list_Return.clear();
+                   pb = new ProcessBuilder(commands).redirectErrorStream(true);
+                   logger.info("[RunServiceCheck] Re-Running (because last was error and nagios.rerun is true): " + commands);
+                   p = pb.start();
+                   is = p.getInputStream();
+                   reader = new BufferedReader(new InputStreamReader(is));
+                   // print output
+                   str_output = null;
+                   str_parse = null;
+                   while ((str_output = reader.readLine()) != null) {
+                       //logger.info(str_output);
+                       str_parse = str_output;
+                   }  
+                   // TODO: parse nagios plugin output, ignore last
+                   st = new StringTokenizer(str_parse,"|");
 
-               while(st.hasMoreTokens())
-               {
-                  list_Return.add(st.nextToken().toString());
-               }
+                   while(st.hasMoreTokens())
+                   {
+                      list_Return.add(st.nextToken().toString());
+                   }
 
 
-               reader.close();
-               rv = p.waitFor();
+                   reader.close();
+                   rv = p.waitFor();
 
-               logger.debug(list_Return);
-               //list_Return.add(str_parse);               
+                   logger.debug(list_Return);
+                   //list_Return.add(str_parse);               
+                }
             }
             
             ReturnServiceCheck rsc = new ReturnServiceCheck(rv,list_Return);
