@@ -91,7 +91,7 @@ public class Quartz {
         boolean retval = false;
         String match = p_cid+"";
         
-        for(ScheduledJob sj : getScheduledJobs())
+        for(ScheduledJob sj : getScheduledServiceChecks())
         {
             if(sj.getJobName().equals(match))
             {

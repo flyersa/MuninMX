@@ -97,6 +97,7 @@ public class muninmxcd {
     public static CopyOnWriteArrayList<Analyzer> v_analyzer = new CopyOnWriteArrayList<>();
     public static int rcajobs_running = 0;
     public static int maxnodes = 100000;
+    public static int maxchecks = 100000;
     public static int socketTimeout = 30000;
     // CHECKS
     public static CopyOnWriteArrayList<ServiceCheck> v_serviceChecks = new CopyOnWriteArrayList<>();;
@@ -205,6 +206,7 @@ public class muninmxcd {
             if(lic.getLicenseType().equals("demo"))
             {
                 maxnodes =  lic.getNum_nodes();
+                maxchecks = lic.getNum_checks();
                 logger.info("---- DEMO MODUS -----");
                 // expired?
                 if(lic.getValid() < getUnixtime())
@@ -222,7 +224,7 @@ public class muninmxcd {
                     System.exit(1);
                 }
                 
-                logger.info("Read Master License - LicenseID: " + lic.getLicenseID() + " Valid To: " + lic.getValid() + " Num Nodes: " + lic.getNum_nodes() + " License Type: " + lic.getLicenseType());
+                logger.info("Read Master License - LicenseID: " + lic.getLicenseID() + " Valid To: " + lic.getValid() + " Num Nodes: " + lic.getNum_nodes() + "Num Checks: " + lic.getNum_checks() + " License Type: " + lic.getLicenseType());
                 maxnodes = lic.getNum_nodes();
                 
                 // read additional licenses
@@ -244,8 +246,9 @@ public class muninmxcd {
                             {
                                 if(alic.getLicenseID().equals(lic.getLicenseID()))
                                 {
-                                    logger.info("Read Additional License - Matching LicenseID: " + alic.getLicenseID() + " Num Nodes: " + alic.getNum_nodes() + " License Type: " + alic.getLicenseType());
+                                    logger.info("Read Additional License - Matching LicenseID: " + alic.getLicenseID() + " Num Nodes: " + alic.getNum_nodes() + " Num Checks: " + alic.getNum_checks() + " License Type: " + alic.getLicenseType());
                                     maxnodes = maxnodes + alic.getNum_nodes();
+                                    maxchecks = maxchecks + alic.getNum_checks();
                                 }
                                 else
                                 {
@@ -335,7 +338,7 @@ public class muninmxcd {
                 {
                     Thread.sleep(sleepTime);
                     i = 0;
-                    logger.info("Waiting 20s for new scheduling slot");
+                    logger.info("Waiting "+sleepTime+"ms for new scheduling slot");
                 }
                 scheduleJob(it_mn);
                 i++;

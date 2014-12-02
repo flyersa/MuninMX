@@ -23,6 +23,7 @@ public class License implements  Serializable {
 
     private String licenseType = "base";
     private int num_nodes = 0;
+    private int num_checks = 0;
     private long valid = 0;
     private String licenseID = "";
     
@@ -81,6 +82,20 @@ public class License implements  Serializable {
      */
     public void setLicenseID(String licenseID) {
         this.licenseID = licenseID;
+    }
+
+    /**
+     * @return the num_checks
+     */
+    public int getNum_checks() {
+        return num_checks;
+    }
+
+    /**
+     * @param num_checks the num_checks to set
+     */
+    public void setNum_checks(int num_checks) {
+        this.num_checks = num_checks;
     }
     
 }

@@ -247,11 +247,24 @@ public class JettyHandler extends AbstractHandler {
                    {
                         
                         logger.info("queue Check with id " + l_lTargets.get(2).toString());
-                        
-                        boolean uret = isServiceCheckScheduled(Integer.parseInt(l_lTargets.get(2).toString()));
-                        if(uret == false)
+                        // check if we have space for nodes
+                        boolean uret = false;
+                        if(com.clavain.muninmxcd.v_serviceChecks.size() < com.clavain.muninmxcd.maxchecks)
                         {
-                            uret = scheduleServiceCheck(Integer.parseInt(l_lTargets.get(2).toString()));
+                            uret = isServiceCheckScheduled(Integer.parseInt(l_lTargets.get(2).toString()));
+                            if(uret == true)
+                            {
+                                logger.info("skipping queue Check with id " + l_lTargets.get(2).toString() + " already scheduled");
+                            }
+                            if(uret == false)
+                            {
+                                uret = scheduleServiceCheck(Integer.parseInt(l_lTargets.get(2).toString()));
+                            }
+                        }
+                        else
+                        {
+                            logger.fatal("License Limit for ServiceChecks: " + com.clavain.muninmxcd.maxchecks + " reached with: " + com.clavain.muninmxcd.v_serviceChecks.size() + " active checks. wont queue new checks");
+                            uret = false;
                         }
                         try (PrintWriter writer = response.getWriter()) {
                             if(uret)
