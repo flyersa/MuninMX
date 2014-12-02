@@ -99,7 +99,8 @@ public class DataRetentionWorker implements Runnable {
                    
                    logger.info("[DataRetentionWorker Custom Mode] Starting Retention Run");
                    stmt = conn.createStatement();
-                   stmt.executeQuery("SELECT * FROM plugins_custom_interval WHERE retention > 0");
+                   rs.close();
+                   rs = stmt.executeQuery("SELECT * FROM plugins_custom_interval WHERE retention > 0");
                    while(rs.next())
                    {  
                         logger.info("[DataRetentionWorker - Custom Mode] Processing Custom ID: " + rs.getString("id") + " Node: " + rs.getString("node_id") + " Plugin: " + rs.getString("pluginname")); 
@@ -117,9 +118,17 @@ public class DataRetentionWorker implements Runnable {
                             DBCursor cursor = col.find(query);
                             if(cursor.count() > 0)
                             {
-                                logger.info("[DataRetentionWorker Custom Mode] Custom Interval (CID: "+rs.getInt("id")+") result for " + l_mn.getHostname() + " from user: " + rs.getString("username") + " affected for deletion: " + cursor.count() + " matchtime: lt " + matchtime);
+                                logger.info("[DataRetentionWorker Custom Mode] Custom Interval (CID: "+rs.getInt("id")+") POSITIVE RESULTS for " + l_mn.getHostname() + " from user: " + rs.getString("username") + " affected for deletion: " + cursor.count() + " collection: " + colname + " matchtime: lt " + matchtime);
+                            }
+                            else
+                            {
+                                logger.info("[DataRetentionWorker Custom Mode] Custom Interval (CID: "+rs.getInt("id")+") NEGATIVE RESULTS for " + l_mn.getHostname() + " from user: " + rs.getString("username") + " count:  " + cursor.count() + " collection: " + colname +" matchtime: lt " + matchtime);
                             }
                             col.remove(query);                            
+                        }
+                        else
+                        {
+                            logger.warn("[DataRetentionWorker Custom Mode] getMuninNode returned null for node_id " + rs.getInt("node_id"));
                         }
                    }                 
                    logger.info("[DataRetentionWorker Custom Mode] Finished Retention Run");
@@ -127,7 +136,8 @@ public class DataRetentionWorker implements Runnable {
                    // Service Checks
                    logger.info("[DataRetentionWorker ServiceCheck Mode] Starting Retention Run");
                    stmt = conn.createStatement();
-                   stmt.executeQuery("SELECT service_checks.*,users.retention,users.username FROM service_checks LEFT JOIN users on service_checks.user_id = users.id WHERE users.retention > 0");
+                   rs.close();
+                   rs = stmt.executeQuery("SELECT service_checks.*,users.retention,users.username FROM service_checks LEFT JOIN users on service_checks.user_id = users.id WHERE users.retention > 0");
                    while(rs.next())
                    {  
                         logger.info("[DataRetentionWorker - ServiceCheck Mode] Processing ServiceCheck ID: " + rs.getString("id") + " Name: " + rs.getString("check_name") + " for User: " + rs.getString("username") + " Retention: " + rs.getString("retention")); 
