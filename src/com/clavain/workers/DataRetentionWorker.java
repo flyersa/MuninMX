@@ -123,6 +123,33 @@ public class DataRetentionWorker implements Runnable {
                         }
                    }                 
                    logger.info("[DataRetentionWorker Custom Mode] Finished Retention Run");
+                   
+                   // Service Checks
+                   logger.info("[DataRetentionWorker ServiceCheck Mode] Starting Retention Run");
+                   stmt = conn.createStatement();
+                   stmt.executeQuery("SELECT service_checks.*,users.retention,users.username FROM service_checks LEFT JOIN users on service_checks.user_id = users.id WHERE users.retention > 0");
+                   while(rs.next())
+                   {  
+                        logger.info("[DataRetentionWorker - ServiceCheck Mode] Processing ServiceCheck ID: " + rs.getString("id") + " Name: " + rs.getString("check_name") + " for User: " + rs.getString("username") + " Retention: " + rs.getString("retention")); 
+                        
+                        String colname = rs.getInt("user_id") + "cid"+rs.getInt("id");
+                        int matchtime = rs.getInt("retention") * 86400;
+                        matchtime = getUnixtime() - matchtime;
+                        BasicDBObject query = new BasicDBObject("time", new BasicDBObject("$lt", matchtime));
+                        query.append("cid", rs.getInt("id"));
+                        query.append("status", 0);
+                        String dbName = com.clavain.muninmxcd.p.getProperty("mongo.dbchecks");
+                        db = m.getDB(dbName);
+                        col = db.getCollection(colname);
+                        DBCursor cursor = col.find(query);
+                        if(cursor.count() > 0)
+                        {
+                            logger.info("[DataRetentionWorker ServiceCheck Mode] ServiceCheck ID: " + rs.getString("id") + " Name: " + rs.getString("check_name") + " for User: " + rs.getString("username") + " affected for deletion: " + cursor.count() + " matchtime: lt " + matchtime);
+                        }
+                        col.remove(query);                            
+                        
+                   }                                    
+                   logger.info("[DataRetentionWorker ServiceCheck Mode] Finished Retention Run");
                    conn.close();
               }
              
