@@ -65,7 +65,7 @@ public class DataRetentionWorker implements Runnable {
                             logger.info("[DataRetentionWorker User Mode] probing " + l_mn.getHostname() + " from user: " + rs.getString("username"));
                             String colname = l_mn.getUser_id()+"_"+l_mn.getNode_id(); // recv
                             String colnamees = l_mn.getNode_id()+"_ess";  // time
-                            int matchtime = rs.getInt("retention") * 2629743;
+                            int matchtime = rs.getInt("retention") * month;
                             matchtime = getUnixtime() - matchtime;
                             BasicDBObject query = new BasicDBObject("recv", new BasicDBObject("$lt", matchtime));
                             String dbName = com.clavain.muninmxcd.p.getProperty("mongo.dbname");
@@ -143,7 +143,7 @@ public class DataRetentionWorker implements Runnable {
                         logger.info("[DataRetentionWorker - ServiceCheck Mode] Processing ServiceCheck ID: " + rs.getString("id") + " Name: " + rs.getString("check_name") + " for User: " + rs.getString("username") + " Retention: " + rs.getString("retention")); 
                         
                         String colname = rs.getInt("user_id") + "cid"+rs.getInt("id");
-                        int matchtime = rs.getInt("retention") * 86400;
+                        int matchtime = rs.getInt("retention") * month;
                         matchtime = getUnixtime() - matchtime;
                         BasicDBObject query = new BasicDBObject("time", new BasicDBObject("$lt", matchtime));
                         query.append("cid", rs.getInt("id"));
