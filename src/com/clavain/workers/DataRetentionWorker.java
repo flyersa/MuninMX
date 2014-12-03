@@ -118,11 +118,11 @@ public class DataRetentionWorker implements Runnable {
                             DBCursor cursor = col.find(query);
                             if(cursor.count() > 0)
                             {
-                                logger.info("[DataRetentionWorker Custom Mode] Custom Interval (CID: "+rs.getInt("id")+") POSITIVE RESULTS for " + l_mn.getHostname() + " from user: " + rs.getString("username") + " affected for deletion: " + cursor.count() + " collection: " + colname + " matchtime: lt " + matchtime);
+                                logger.info("[DataRetentionWorker Custom Mode] Custom Interval (CID: "+rs.getInt("id")+") POSITIVE RESULTS for " + l_mn.getHostname() + " affected for deletion: " + cursor.count() + " collection: " + colname + " matchtime: lt " + matchtime);
                             }
                             else
                             {
-                                logger.info("[DataRetentionWorker Custom Mode] Custom Interval (CID: "+rs.getInt("id")+") NEGATIVE RESULTS for " + l_mn.getHostname() + " from user: " + rs.getString("username") + " count:  " + cursor.count() + " collection: " + colname +" matchtime: lt " + matchtime);
+                                logger.info("[DataRetentionWorker Custom Mode] Custom Interval (CID: "+rs.getInt("id")+") NEGATIVE RESULTS for " + l_mn.getHostname() + "count:  " + cursor.count() + " collection: " + colname +" matchtime: lt " + matchtime);
                             }
                             col.remove(query);                            
                         }

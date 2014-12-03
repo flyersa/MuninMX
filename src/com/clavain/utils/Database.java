@@ -119,6 +119,24 @@ public class Database {
                 logger.info("[Node " + nodeId + "] Adding Plugin: " + mp.getPluginName() + " to database");
                 stmt.executeUpdate("INSERT INTO node_plugins (node_id,pluginname,plugintitle,plugininfo,plugincategory) VALUES ("+nodeId+",'"+clearStringForSQL(mp.getPluginName())+"','"+clearStringForSQL(mp.getPluginTitle())+"','"+clearStringForSQL(mp.getPluginInfo())+"','"+clearStringForSQL(mp.getStr_PluginCategory())+"')");
             }
+            else
+            {
+                rs = stmt.executeQuery("SELECT * from node_plugins WHERE node_id = "+nodeId+" AND pluginname = '"+clearStringForSQL(mp.getPluginName())+"'");
+                while(rs.next())
+                {
+                    // plugin title or/and category change?
+                    if(!clearStringForSQL(mp.getPluginTitle()).equals(rs.getString("plugintitle")))
+                    {
+                        logger.info("[Node " + nodeId + "] Plugin: " + mp.getPluginName() + " got new Title. Updating Title");
+                        stmt.executeUpdate("UPDATE node_plugins SET plugintitle = '" + clearStringForSQL(mp.getPluginTitle()) + "' WHERE node_id = "+nodeId+" AND pluginname = '"+clearStringForSQL(mp.getPluginName())+"'");                 
+                    }
+                    if(!clearStringForSQL(mp.getStr_PluginCategory()).equals(rs.getString("plugincategory")))
+                    {
+                        logger.info("[Node " + nodeId + "] Plugin: " + mp.getPluginName() + " got new category. Updating Category (New: "+mp.getStr_PluginCategory()+" Old: "+rs.getString("plugincategory")+" )");
+                        stmt.executeUpdate("UPDATE node_plugins SET plugintitle = '" + clearStringForSQL(mp.getStr_PluginCategory()) + "' WHERE node_id = "+nodeId+" AND pluginname = '"+clearStringForSQL(mp.getPluginName())+"'"); 
+                    }     
+                }
+            }
             conn.close();
         } catch (Exception ex)
         {
