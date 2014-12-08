@@ -133,7 +133,7 @@ public class Database {
                     if(!clearStringForSQL(mp.getStr_PluginCategory()).equals(rs.getString("plugincategory")))
                     {
                         logger.info("[Node " + nodeId + "] Plugin: " + mp.getPluginName() + " got new category. Updating Category (New: "+mp.getStr_PluginCategory()+" Old: "+rs.getString("plugincategory")+" )");
-                        stmt.executeUpdate("UPDATE node_plugins SET plugintitle = '" + clearStringForSQL(mp.getStr_PluginCategory()) + "' WHERE node_id = "+nodeId+" AND pluginname = '"+clearStringForSQL(mp.getPluginName())+"'"); 
+                        stmt.executeUpdate("UPDATE node_plugins SET plugincategory = '" + clearStringForSQL(mp.getStr_PluginCategory()) + "' WHERE node_id = "+nodeId+" AND pluginname = '"+clearStringForSQL(mp.getPluginName())+"'"); 
                     }     
                 }
             }

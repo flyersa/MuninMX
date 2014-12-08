@@ -124,7 +124,8 @@ public class DataRetentionWorker implements Runnable {
                             {
                                 logger.info("[DataRetentionWorker Custom Mode] Custom Interval (CID: "+rs.getInt("id")+") NEGATIVE RESULTS for " + l_mn.getHostname() + "count:  " + cursor.count() + " collection: " + colname +" matchtime: lt " + matchtime);
                             }
-                            col.remove(query);                            
+                            col.remove(query);
+                           
                         }
                         else
                         {
