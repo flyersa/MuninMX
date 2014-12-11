@@ -21,10 +21,10 @@ public class ReturnServiceCheck {
     private String checktype;
     private String checkname;
     private Integer interval;
-    private Integer notifydown;
-    private Integer notifyagain;
-    private Integer notifyifup;
-    private Integer notifyflap;
+    private Integer notifydown = 0;
+    private Integer notifyagain = 0;
+    private Integer notifyifup = 0;
+    private Integer notifyflap = 0;
     private String json;
     
     /**
