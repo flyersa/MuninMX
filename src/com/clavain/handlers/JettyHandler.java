@@ -31,7 +31,9 @@ import java.net.URLDecoder;
 import static com.clavain.alerts.Methods.sendPushOverMessage;
 import com.clavain.checks.RunServiceCheck;
 import com.clavain.json.ServiceCheck;
+import static com.clavain.muninmxcd.p;
 import com.clavain.rca.Analyzer;
+import java.io.FileInputStream;
 
 /**
  *
@@ -48,6 +50,7 @@ public class JettyHandler extends AbstractHandler {
         if (!target.equals("/favicon.ico")) {
             logger.info("Request from [" + baseRequest.getRemoteAddr() + "] : " + target);
         }
+        
         response = p_response;
         response.setContentType("text/html;charset=utf-8");
         response.setHeader("Server", "MuninMXcd" + com.clavain.muninmxcd.version);
@@ -128,8 +131,46 @@ public class JettyHandler extends AbstractHandler {
                     } finally {
                         baseRequest.setHandled(true);
                     }
-                }                     
-            } // query a node
+                }       
+                
+            } 
+            // configuration stuff
+            else if (l_lTargets.get(0).equals("config"))
+            {
+                if(l_lTargets.get(1).equals("reload"))
+                {
+                    boolean retval = false;
+                    try
+                    {
+                        FileInputStream propInFile = null;
+                        propInFile = new FileInputStream(com.clavain.muninmxcd.initialArgs[0]);
+                        p.loadFromXML(propInFile); 
+                        retval = true;
+                    } catch (Exception ex)
+                    {
+                        logger.error("Error reloading config: " + ex.getLocalizedMessage());
+                    }
+                    
+                    try (PrintWriter writer = response.getWriter()) {
+                        writeJson(retval,writer);
+                    } catch (Exception ex) {
+                       baseRequest.setHandled(true);
+                    } finally {
+                       baseRequest.setHandled(true);
+                    }                    
+                }
+                else if(l_lTargets.get(1).equals("list"))
+                {
+                    try (PrintWriter writer = response.getWriter()) {
+                        writeJson(p,writer);
+                    } catch (Exception ex) {
+                       baseRequest.setHandled(true);
+                    } finally {
+                       baseRequest.setHandled(true);
+                    }                        
+                }
+            }
+            // query a node
             else if (l_lTargets.get(0).equals("node")) {
                 //logger.debug(l_lTargets.size());
                 MuninNode mn = null;

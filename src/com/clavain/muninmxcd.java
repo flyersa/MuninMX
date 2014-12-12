@@ -102,6 +102,7 @@ public class muninmxcd {
     // CHECKS
     public static CopyOnWriteArrayList<ServiceCheck> v_serviceChecks = new CopyOnWriteArrayList<>();;
     public static List<Integer> errorProcessing = new CopyOnWriteArrayList<Integer>();
+    public static String[] initialArgs;
     /**
      * @param args the command line arguments
      */
@@ -115,6 +116,8 @@ public class muninmxcd {
         
        try
         {
+            
+            initialArgs = args;
             p = new Properties();
             FileInputStream propInFile = null;
             propInFile = new FileInputStream(args[0]);
