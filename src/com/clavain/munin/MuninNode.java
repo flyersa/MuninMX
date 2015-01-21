@@ -397,6 +397,11 @@ public class MuninNode
                           {
                               l_mp.setPluginLabel(l_tmp.substring(13,l_tmp.length()));
                           }
+                          // set plugin title
+                          if(l_tmp.contains("graph_mxdraw"))
+                          {
+                              l_mp.setStr_LineMode(l_tmp.substring(13,l_tmp.length()));
+                          }                          
                       }
                       
                     }

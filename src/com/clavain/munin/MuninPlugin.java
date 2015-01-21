@@ -31,6 +31,7 @@ public class MuninPlugin {
     private String str_PluginInfo;
     private String str_PluginCategory;
     private String str_PluginLabel;
+    private String str_LineMode;
     private long   l_lastFrontendQuery;
     private transient long   l_lastMuninQuery;
     private transient Socket csMuninSocket;
@@ -472,5 +473,19 @@ public class MuninPlugin {
      */
     public void setCrontab(String crontab) {
         this.crontab = crontab;
+    }
+
+    /**
+     * @return the str_LineMode
+     */
+    public String getStr_LineMode() {
+        return str_LineMode;
+    }
+
+    /**
+     * @param str_LineMode the str_LineMode to set
+     */
+    public void setStr_LineMode(String str_LineMode) {
+        this.str_LineMode = str_LineMode;
     }
 }
