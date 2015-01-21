@@ -135,6 +135,11 @@ public class Database {
                         logger.info("[Node " + nodeId + "] Plugin: " + mp.getPluginName() + " got new category. Updating Category (New: "+mp.getStr_PluginCategory()+" Old: "+rs.getString("plugincategory")+" )");
                         stmt.executeUpdate("UPDATE node_plugins SET plugincategory = '" + clearStringForSQL(mp.getStr_PluginCategory()) + "' WHERE node_id = "+nodeId+" AND pluginname = '"+clearStringForSQL(mp.getPluginName())+"'"); 
                     }     
+                    if(!clearStringForSQL(mp.getStr_LineMode()).equals(rs.getString("linemode")))
+                    {
+                        logger.info("[Node " + nodeId + "] Plugin: " + mp.getPluginName() + " got new linemode. Updating linemode (New: "+mp.getStr_LineMode()+" Old: "+rs.getString("linemode")+" )");
+                        stmt.executeUpdate("UPDATE node_plugins SET linemode = '" + clearStringForSQL(mp.getStr_LineMode()) + "' WHERE node_id = "+nodeId+" AND pluginname = '"+clearStringForSQL(mp.getPluginName())+"'"); 
+                    }                        
                 }
             }
             conn.close();

@@ -31,7 +31,7 @@ public class MuninPlugin {
     private String str_PluginInfo;
     private String str_PluginCategory;
     private String str_PluginLabel;
-    private String str_LineMode;
+    private String str_LineMode = "default";
     private long   l_lastFrontendQuery;
     private transient long   l_lastMuninQuery;
     private transient Socket csMuninSocket;
