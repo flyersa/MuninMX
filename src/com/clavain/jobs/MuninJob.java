@@ -25,7 +25,8 @@ public class MuninJob implements Job {
           Integer nodeId = dataMap.getInt("nodeId");
           
           Thread runner = new Thread(new JobRunner(nodeId));
-          int maxAge = getUnixtime() + 60;
+          int maxjobage = Integer.parseInt(com.clavain.muninmxcd.p.getProperty("job.maxruntime","60"));
+          int maxAge = getUnixtime() + maxjobage;
           boolean keepMeRunning = true;
           
           runner.start();
