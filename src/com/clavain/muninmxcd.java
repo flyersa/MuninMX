@@ -19,6 +19,11 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
+ *
+ * 
+ * special thanks to the unbelievable machine company GmbH
+ * www.unbelievable-machine.com
  */
 package com.clavain;
 
@@ -93,7 +98,7 @@ public class muninmxcd {
     public static MongoClient m;
     public static DB db;
     public static DBCollection col;
-    public static String version    = "0.5 <Codename: Wild Hog>";
+    public static String version    = "1.0 <Codename: Regret>";
     public static Connection conn = null;    
     public static CopyOnWriteArrayList<MuninNode> v_munin_nodes;
     public static CopyOnWriteArrayList<MuninPlugin> v_cinterval_plugins;
